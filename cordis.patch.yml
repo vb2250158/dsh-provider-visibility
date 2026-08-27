@@ -1,0 +1,6 @@
+- insert:
+    - id: provider-visibility
+      name: dsh-provider-visibility
+      config:
+        hiddenProviders:
+          - siliconflow
