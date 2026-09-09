@@ -1,8 +1,7 @@
 /** Browser-side projection of the current session's model selector directory. */
 
-import type { SessionId, SessionModels } from '@deepseek-ai/dsh-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
-import type { ModelDirectory } from '@deepseek-ai/dsh-client-ui-model-selection/client'
+import type { ModelCatalog } from '@deepseek-ai/dsh-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
 
 /** Page load state. */
 export interface ProviderVisibilityState {
@@ -37,22 +36,14 @@ export class ProviderVisibilityStore {
 
   private generation = 0
 
-  constructor(
-    private readonly directoryFor: (sessionId: SessionId) => ModelDirectory,
-    private readonly unfilteredDirectory: (directory: ModelDirectory) => SessionModels | undefined,
-    private readonly currentSession: () => SessionId | undefined,
-  ) {}
+  constructor(private readonly loadCatalog: () => Promise<ModelCatalog>) {}
 
   /** Load the same provider groups rendered by the current session's model selector. */
   async load(): Promise<void> {
     const generation = ++this.generation
     this.store.update((state) => { state.status = 'loading'; state.error = null })
     try {
-      const sessionId = this.currentSession()
-      if (sessionId === undefined) throw new Error('no current session')
-      const directory = this.directoryFor(sessionId)
-      const visibleModels = await directory.load()
-      const models = this.unfilteredDirectory(directory) ?? visibleModels
+      const models = await this.loadCatalog()
       if (generation !== this.generation) return
       this.store.update((state) => {
         state.status = 'ready'

@@ -2,7 +2,6 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { SettingsScope } from '@deepseek-ai/dsh-settings'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import {
   Config,
   DEFAULT_HIDDEN_PROVIDERS,
@@ -21,7 +20,7 @@ export {
   type ProviderVisibilitySettings,
 } from './provider-visibility.ts'
 
-const SETTINGS_NAMESPACE = settingsNamespace(PROVIDER_VISIBILITY_SETTINGS_NAMESPACE)
+const SETTINGS_NAMESPACE = PROVIDER_VISIBILITY_SETTINGS_NAMESPACE
 
 /** Public host face consumed by the API gateway at catalog-build time. */
 export interface ProviderVisibility {

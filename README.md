@@ -27,3 +27,5 @@ npm pack --dry-run
 ## 许可证
 
 MIT
+
+Local integration uses the current client-store and declares remote.session injection. The settings page reads the global model catalog, so a pending or absent session does not hide available providers.
