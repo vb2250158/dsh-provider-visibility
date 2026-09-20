@@ -2,6 +2,7 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { SettingsScope } from '@deepseek-ai/dsh-settings'
+import { installRedirects } from './redirect-runtime.ts'
 import {
   Config,
   DEFAULT_HIDDEN_PROVIDERS,
@@ -67,8 +68,11 @@ export function apply(ctx: Context, config: Config = {}): void {
   const service = new ProviderVisibilityService(ctx, config)
   ctx.inject(['settings'], (settingsCtx) => {
     const scope = settingsCtx.settings.register(SETTINGS_NAMESPACE, ProviderVisibilitySettingsSchema, {
-      base: { hiddenProviders: normalizeHiddenProviders(config.hiddenProviders ?? DEFAULT_HIDDEN_PROVIDERS) },
+      base: { hiddenProviders: normalizeHiddenProviders(config.hiddenProviders ?? DEFAULT_HIDDEN_PROVIDERS), redirects: [] },
     })
     service.attachSettings(scope)
+    settingsCtx.inject(['llm', 'sessionProjections'], runtimeCtx => {
+      installRedirects(runtimeCtx, () => scope.get().redirects)
+    })
   })
 }

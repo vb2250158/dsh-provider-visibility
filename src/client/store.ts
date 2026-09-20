@@ -9,6 +9,7 @@ export interface ProviderVisibilityState {
   error: string | null
   /** Provider entries currently rendered by the model selector. */
   providers: readonly ProviderVisibilityProvider[]
+  groups: ModelCatalog['groups']
 }
 
 /** One provider projected from a model selector group. */
@@ -31,7 +32,7 @@ export function messageOf(error: unknown): string {
 export class ProviderVisibilityStore {
   /** Snapshot store consumed by the settings section. */
   readonly store: SnapshotStore<ProviderVisibilityState> = createSnapshotStore<ProviderVisibilityState>({
-    status: 'idle', error: null, providers: [],
+    status: 'idle', error: null, providers: [], groups: [],
   })
 
   private generation = 0
@@ -48,6 +49,7 @@ export class ProviderVisibilityStore {
       this.store.update((state) => {
         state.status = 'ready'
         state.error = null
+        state.groups = models.groups
         state.providers = models.groups.map(group => ({
           provider: group.id,
           displayName: group.name,

@@ -1,0 +1,1 @@
+subscription/model-a → api/model-b

@@ -4,6 +4,12 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+await build({
+  entryPoints: [resolve(repositoryRoot, 'src/index.ts')],
+  outfile: resolve(repositoryRoot, 'lib/index.js'),
+  bundle: true, format: 'esm', platform: 'node', target: 'es2022',
+  external: ['@deepseek-ai/*', 'zod'],
+})
 const source = resolve(repositoryRoot, 'src/client/index.ts')
 const output = resolve(repositoryRoot, 'lib/client.js')
 const moduleId = 'dsh-provider-visibility'
@@ -32,3 +38,4 @@ const artifact = `window.__ModuleLoader__.load({\n  id: ${JSON.stringify(moduleI
 await mkdir(dirname(output), { recursive: true })
 await writeFile(output, artifact)
 console.log(`Built ${output}`)
+await import('./build-types.mjs')

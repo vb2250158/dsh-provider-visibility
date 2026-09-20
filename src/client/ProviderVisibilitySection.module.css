@@ -6,6 +6,9 @@
   color: var(--dsw-alias-label-primary);
 }
 
+.redirectForm { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.redirectForm p { margin: 0 0 8px; font-size: 12px; line-height: 18px; }
+
 .title {
   margin: 0;
   font-size: 16px;

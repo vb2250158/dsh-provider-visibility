@@ -1,7 +1,8 @@
 /** Browser half of the provider-display settings plugin. */
 
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
-import type { SessionModels } from '@deepseek-ai/dsh-api-remotes/client'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
+import type { ModelDirectoryState as SessionModels } from '@deepseek-ai/dsh-client-ui-model-selection/client'
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { ModelDirectory, ModelDirectoryResolver } from '@deepseek-ai/dsh-client-ui-model-selection/client'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -99,6 +100,7 @@ export function apply(ctx: ClientContext): void {
     hooks: { snapshot: controller.store },
     settings: scope,
     setProviderVisible,
+    saveRedirects: async rules => { await scope.set('redirects', rules) },
     t,
   })
 
@@ -122,5 +124,6 @@ export function apply(ctx: ClientContext): void {
     order: 15,
     label: () => t('nav'),
     inject: injected,
+    children: { 'settings.model-redirect.picker': { kind: 'single', scope: 'root' } },
   }, ProviderVisibilitySection))
 }

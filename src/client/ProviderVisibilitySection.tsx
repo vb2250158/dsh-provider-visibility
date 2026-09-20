@@ -2,14 +2,16 @@
 
 import * as React from 'react'
 import type { ReactNode } from 'react'
-import type { InjectFace } from '@deepseek-ai/dsh-client-ui-slots'
-import type { SettingsScope } from '@deepseek-ai/dsh-client-runtime/client'
+import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
+import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client'
 import { Button } from '@deepseek-ai/dsh-client-ui-primitives'
 import { DEFAULT_HIDDEN_PROVIDERS } from '../provider-visibility-shared.ts'
 import type { ProviderVisibilitySettings } from '../provider-visibility.ts'
 import type { ProviderVisibilityStore } from './store.ts'
 import type { ProviderVisibilityKey } from './locales.ts'
 import styles from './ProviderVisibilitySection.module.css'
+import { RedirectRules } from './RedirectRules.tsx'
+import type { RedirectRule } from '../redirect-rules.ts'
 
 /** Injected dependencies for the settings section. */
 export interface ProviderVisibilitySectionInjected {
@@ -21,13 +23,14 @@ export interface ProviderVisibilitySectionInjected {
   /** Durable visibility settings for this settings page. */
   settings: SettingsScope<ProviderVisibilitySettings>
   setProviderVisible: (provider: string, visible: boolean) => Promise<void>
+  saveRedirects: (rules: RedirectRule[]) => Promise<void>
   t: (key: ProviderVisibilityKey) => string
 }
 
 /** Slot props delivered by the settings shell. */
-export type ProviderVisibilitySectionProps = Partial<InjectFace<ProviderVisibilitySectionInjected>>
+export type ProviderVisibilitySectionProps = Partial<InjectFace<ProviderVisibilitySectionInjected>> & PropsRenderSlots<'settings.model-redirect.picker'>
 
-type ProviderVisibilitySectionFace = InjectFace<ProviderVisibilitySectionInjected>
+type ProviderVisibilitySectionFace = InjectFace<ProviderVisibilitySectionInjected> & PropsRenderSlots<'settings.model-redirect.picker'>
 
 function format(template: string, provider: string): string {
   return template.replace('{provider}', () => provider)
@@ -35,16 +38,18 @@ function format(template: string, provider: string): string {
 
 /** Render the provider visibility settings page. */
 export function ProviderVisibilitySection(props: ProviderVisibilitySectionProps): ReactNode {
-  const { controller, useSnapshot, settings, setProviderVisible, t } = props
+  const { controller, useSnapshot, settings, setProviderVisible, saveRedirects, renderSlot, t } = props
   if (controller === undefined || useSnapshot === undefined || settings === undefined
-    || setProviderVisible === undefined || t === undefined) return null
-  return <Loaded injected={{ controller, useSnapshot, settings, setProviderVisible, t }} />
+    || setProviderVisible === undefined || saveRedirects === undefined || t === undefined) return null
+  return <Loaded injected={{ controller, useSnapshot, settings, setProviderVisible, saveRedirects, renderSlot, t }} />
 }
 
 function Loaded({ injected }: { injected: ProviderVisibilitySectionFace }): ReactNode {
   const { controller, setProviderVisible, t } = injected
   const state = injected.useSnapshot(snapshot => snapshot)
-  const settings = injected.settings.getSnapshot()
+  const settings = React.useSyncExternalStore(
+    listener => injected.settings.subscribe(listener), () => injected.settings.getSnapshot(),
+  )
   const [pending, setPending] = React.useState<string | undefined>(undefined)
 
   React.useEffect(() => {
@@ -73,6 +78,8 @@ function Loaded({ injected }: { injected: ProviderVisibilitySectionFace }): Reac
   return (
     <div className={styles['section']}>
       <h2 className={styles['title']}>{t('title')}</h2>
+      <RedirectRules groups={state.groups} rules={settings.value?.redirects ?? []} writable={writable}
+        save={injected.saveRedirects} renderSlot={injected.renderSlot} t={t} />
       <p className={styles['intro']}>{t('intro')}</p>
       <p className={styles['hint']}>{t('hiddenHint')}</p>
       {settingsNotice === undefined ? null : <p className={styles['notice']}>{settingsNotice}</p>}

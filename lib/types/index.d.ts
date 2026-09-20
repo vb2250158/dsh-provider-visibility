@@ -21,13 +21,10 @@ export declare class ProviderVisibilityService extends Service implements Provid
     private readonly fallback;
     private settings;
     constructor(ctx: Context, config?: Config);
-    /** Attach the settings owner once the settings provider is available.
-     * @param scope - Settings scope that owns the durable provider-display value.
-     */
+    /** Attach the settings owner once the settings provider is available. */
     attachSettings(scope: SettingsScope<ProviderVisibilitySettings>): void;
     isHidden(provider: string): boolean;
     hiddenProviders(): readonly string[];
 }
 /** Register the policy service and the durable user setting. */
 export declare function apply(ctx: Context, config?: Config): void;
-//# sourceMappingURL=index.d.ts.map

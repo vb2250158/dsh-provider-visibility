@@ -1,6 +1,18 @@
 /** Copy for the provider-display settings page. */
 
 export const en = {
+  'redirect.title': 'Model redirects',
+  'redirect.hint': 'Exact model rules take priority. Each request redirects once and keeps the selected model. Removing a rule restores the original route. Replies retain the actual route.',
+  'redirect.all': 'All models from this provider',
+  'redirect.from': 'Original provider and model',
+  'redirect.to': 'Destination provider and model',
+  'redirect.add': 'Add rule',
+  'redirect.remove': 'Remove',
+  'redirect.none': 'No redirect rules.',
+  'redirect.duplicate': 'A rule already exists for this source. Remove it before adding another.',
+  'redirect.self': 'The destination must differ from the source.',
+  'redirect.empty': 'Choose both the source and destination.',
+  'redirect.badge': 'Redirected',
   nav: 'Model list',
   title: 'Model list',
   intro: 'Choose which providers appear in the model selector.',
@@ -22,6 +34,18 @@ export const en = {
 export type ProviderVisibilityKey = keyof typeof en
 
 export const zh: { [Key in ProviderVisibilityKey]: string } = {
+  'redirect.title': '模型重定向',
+  'redirect.hint': '指定模型优先于提供商规则，每次请求只重定向一次。保留原选择，移除规则后恢复原路由；回复按当轮实际使用的模型存档。',
+  'redirect.all': '匹配此提供商的全部模型',
+  'redirect.from': '原提供商与模型',
+  'redirect.to': '目标提供商与模型',
+  'redirect.add': '添加规则',
+  'redirect.remove': '移除',
+  'redirect.none': '尚未设置重定向规则。',
+  'redirect.duplicate': '该来源已有规则，请先移除再添加。',
+  'redirect.self': '目标不能与来源相同。',
+  'redirect.empty': '请选择来源和目标模型。',
+  'redirect.badge': '已重定向',
   nav: '模型列表',
   title: '模型列表',
   intro: '选择哪些提供方显示在模型选择器中。',

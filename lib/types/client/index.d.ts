@@ -1,5 +1,5 @@
 /** Browser half of the provider-display settings plugin. */
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
+import type { Context as ClientContext } from '@deepseek-ai/cordis';
 import { type ProviderVisibilityKey } from './locales.ts';
 export type { ProviderVisibilitySectionInjected, ProviderVisibilitySectionProps } from './ProviderVisibilitySection.tsx';
 export type { ProviderVisibilityState } from './store.ts';
@@ -14,4 +14,3 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export declare const inject: string[];
 /** Register the Model list page and keep its provider directory current. */
 export declare function apply(ctx: ClientContext): void;
-//# sourceMappingURL=index.d.ts.map

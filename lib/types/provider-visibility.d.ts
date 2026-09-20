@@ -1,13 +1,13 @@
 /** Durable provider-display settings shared by the Host and browser halves. */
 import z from '@deepseek-ai/schemastery';
-/** Settings namespace owned by the provider-display plugin. */
-export declare const PROVIDER_VISIBILITY_SETTINGS_NAMESPACE = "llm-provider-visibility";
-/** Providers hidden in the default Web composition. */
-export declare const DEFAULT_HIDDEN_PROVIDERS: readonly ["siliconflow"];
+import { type RedirectRule } from './redirect-rules.ts';
+export { DEFAULT_HIDDEN_PROVIDERS, PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from './provider-visibility-shared.ts';
 /** User-editable provider-display settings. */
 export interface ProviderVisibilitySettings {
     /** Provider route ids omitted from model catalogs. */
     hiddenProviders: string[];
+    /** 仅影响后续请求；原会话模型选择保持不变。 */
+    redirects: RedirectRule[];
 }
 /** Host plugin configuration, used as the composition layer for the setting. */
 export interface Config {
@@ -18,9 +18,5 @@ export interface Config {
 export declare const ProviderVisibilitySettingsSchema: z<ProviderVisibilitySettings>;
 /** Loader configuration schema. */
 export declare const Config: z<Config>;
-/** Remove duplicate and empty ids before they become policy state.
- * @param providers - Provider route ids from composition or settings.
- * @returns A detached list with empty and duplicate ids removed.
- */
+/** Remove duplicate and empty ids before they become policy state. */
 export declare function normalizeHiddenProviders(providers: readonly string[]): string[];
-//# sourceMappingURL=provider-visibility.d.ts.map
