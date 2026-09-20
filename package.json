@@ -1,7 +1,7 @@
 {
   "name": "dsh-provider-visibility",
   "description": "Provider visibility policy and Model list settings page",
-  "version": "0.1.0-rc.8.10",
+  "version": "0.1.0-rc.8.11",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",

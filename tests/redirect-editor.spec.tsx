@@ -3,8 +3,32 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, expect, it, vi } from 'vitest'
 import { RedirectRules } from '../src/client/RedirectRules.tsx'
 import { zh } from '../src/client/locales.ts'
+import { ProviderVisibilitySection } from '../src/client/ProviderVisibilitySection.tsx'
+import { decodeProviderVisibility } from '../src/provider-visibility-shared.ts'
 
 afterEach(cleanup)
+
+it('已解析的可写设置启用提供商勾选和模型下拉，保存回读后可再次切换', async () => {
+  let snapshot = { status: 'ready', writable: true, value: decodeProviderVisibility({ hiddenProviders: ['api'], redirects: [] }) }
+  const listeners = new Set<() => void>()
+  const setProviderVisible = vi.fn(async (provider, visible) => {
+    snapshot = { ...snapshot, value: { ...snapshot.value!, hiddenProviders: visible ? [] : [provider] } }
+    for (const listener of listeners) listener()
+  })
+  render(<ProviderVisibilitySection controller={{ load: async () => {} } as never}
+    useSnapshot={select => select({ status: 'ready', providers: [{ provider: 'api', displayName: 'API' }], groups, error: null })}
+    settings={{ getSnapshot: () => snapshot, subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener) } } as never}
+    setProviderVisible={setProviderVisible} saveRedirects={async () => {}} renderSlot={picker as never} t={key => zh[key]} />)
+  const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+  expect(checkbox.disabled).toBe(false)
+  expect(checkbox.checked).toBe(false)
+  expect((screen.getAllByText('pick')[0] as HTMLButtonElement).disabled).toBe(false)
+  fireEvent.click(checkbox)
+  await waitFor(() => { expect(checkbox.checked).toBe(true); expect(checkbox.disabled).toBe(false) })
+  fireEvent.click(checkbox)
+  await waitFor(() => { expect(checkbox.checked).toBe(false); expect(checkbox.disabled).toBe(false) })
+  expect(setProviderVisible.mock.calls).toEqual([['api', true], ['api', false]])
+})
 const groups = [{ id: 'subscription', name: 'Subscription', models: [{ id: 'a', name: 'Model A' }] }, { id: 'api', name: 'API', models: [{ id: 'b', name: 'Model B' }] }]
 const picker = (_name, props) => <button disabled={props.locked} onClick={() => props.select(props.current === null ? { provider: 'subscription', model: 'a' } : { provider: 'api', model: 'b' })}>{props.current?.model ?? 'pick'}</button>
 

@@ -8,7 +8,7 @@ import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-model-selection/client'
-import { PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from '../provider-visibility-shared.ts'
+import { decodeProviderVisibility, PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from '../provider-visibility-shared.ts'
 import type { ProviderVisibilitySettings } from '../provider-visibility.ts'
 import { ProviderVisibilitySection, type ProviderVisibilitySectionInjected } from './ProviderVisibilitySection.tsx'
 import { en, zh, type ProviderVisibilityKey } from './locales.ts'
@@ -75,6 +75,7 @@ export function apply(ctx: ClientContext): void {
   const unfilteredDirectories = new WeakMap<ModelDirectory, SessionModels>()
   const scope = ctx.settingsScope.bind<ProviderVisibilitySettings>({
     namespace: PROVIDER_VISIBILITY_SETTINGS_NAMESPACE,
+    decode: decodeProviderVisibility,
   })
   const hiddenProviders = (): ReadonlySet<string> => hiddenProvidersOf(scope.getSnapshot().value)
   const directoryFor = directories.directoryFor.bind(directories)
