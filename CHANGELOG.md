@@ -1,5 +1,9 @@
 # 0.1.0-rc.8.9
 
+## 0.1.0-rc.8.13
+
+- Align maintenance lockfiles and peer versions with the DSH 0.2 runtime.
+
 ## 0.1.0-rc.8.12
 
 - Update DSH compatibility requirements and interfaces for 0.2.1-alpha.1.
