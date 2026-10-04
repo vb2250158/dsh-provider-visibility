@@ -1,6 +1,6 @@
 import type { ProviderVisibilitySettings } from './provider-visibility.ts';
 /** Settings namespace owned by the provider-display plugin. */
-export declare const PROVIDER_VISIBILITY_SETTINGS_NAMESPACE = "llm-provider-visibility";
+export declare const PROVIDER_VISIBILITY_SETTINGS_NAMESPACE = "provider-visibility";
 /** Providers hidden only after the user chooses them. */
 export declare const DEFAULT_HIDDEN_PROVIDERS: readonly [];
 /** 解析主机返回的设置值，不执行序列化 schema 中丢失闭包的转换函数。

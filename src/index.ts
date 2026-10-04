@@ -1,7 +1,6 @@
 /** Host half of the provider-display policy and its user-settings namespace. */
 
 import { Context, Service } from '@deepseek-ai/cordis'
-import type { SettingsScope } from '@deepseek-ai/dsh-settings'
 import { installRedirects } from './redirect-runtime.ts'
 import {
   Config,
@@ -40,17 +39,8 @@ declare module '@deepseek-ai/cordis' {
 
 /** Host service that owns the resolved provider-display policy. */
 export class ProviderVisibilityService extends Service implements ProviderVisibility {
-  private readonly fallback: readonly string[]
-  private settings: SettingsScope<ProviderVisibilitySettings> | undefined
-
-  constructor(ctx: Context, config: Config = {}) {
+  constructor(ctx: Context, private readonly config: Config) {
     super(ctx, 'providerVisibility')
-    this.fallback = normalizeHiddenProviders(config.hiddenProviders ?? DEFAULT_HIDDEN_PROVIDERS)
-  }
-
-  /** Attach the settings owner once the settings provider is available. */
-  attachSettings(scope: SettingsScope<ProviderVisibilitySettings>): void {
-    this.settings = scope
   }
 
   isHidden(provider: string): boolean {
@@ -58,21 +48,17 @@ export class ProviderVisibilityService extends Service implements ProviderVisibi
   }
 
   hiddenProviders(): readonly string[] {
-    const value = this.settings?.get()
-    return Object.freeze(normalizeHiddenProviders(value?.hiddenProviders ?? this.fallback))
+    return Object.freeze(normalizeHiddenProviders(this.config.get().hiddenProviders))
   }
 }
 
 /** Register the policy service and the durable user setting. */
-export function apply(ctx: Context, config: Config = {}): void {
+export function apply(ctx: Context, config: Config): void {
   const service = new ProviderVisibilityService(ctx, config)
   ctx.inject(['settings'], (settingsCtx) => {
-    const scope = settingsCtx.settings.register(SETTINGS_NAMESPACE, ProviderVisibilitySettingsSchema, {
-      base: { hiddenProviders: normalizeHiddenProviders(config.hiddenProviders ?? DEFAULT_HIDDEN_PROVIDERS), redirects: [] },
-    })
-    service.attachSettings(scope)
+    settingsCtx.effect(() => settingsCtx.settings.configure({ auto: false }, ctx.fiber))
     settingsCtx.inject(['llm', 'sessionProjections'], runtimeCtx => {
-      installRedirects(runtimeCtx, () => scope.get().redirects)
+      installRedirects(runtimeCtx, () => config.get().redirects)
     })
   })
 }

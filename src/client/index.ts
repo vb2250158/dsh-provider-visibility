@@ -28,7 +28,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 const NS = 'settings.providerVisibility'
 
 /** Browser services required by this plugin. */
-export const inject = ['slots', 'locale', 'modelDirectories', 'remote', 'remote.session', 'sessions', 'settingsScope']
+export const inject = ['slots', 'locale', 'modelDirectories', 'remote', 'remote.session', 'sessions', 'configForms']
 
 function hiddenProvidersOf(value: ProviderVisibilitySettings | undefined): Set<string> {
   return new Set(value?.hiddenProviders ?? [])
@@ -73,10 +73,7 @@ export function apply(ctx: ClientContext): void {
   const directories = ctx.modelDirectories as ModelDirectoryResolver
   const patched = new WeakSet<ModelDirectory>()
   const unfilteredDirectories = new WeakMap<ModelDirectory, SessionModels>()
-  const scope = ctx.settingsScope.bind<ProviderVisibilitySettings>({
-    namespace: PROVIDER_VISIBILITY_SETTINGS_NAMESPACE,
-    decode: decodeProviderVisibility,
-  })
+  const scope = ctx.configForms.get<ProviderVisibilitySettings>(PROVIDER_VISIBILITY_SETTINGS_NAMESPACE)
   const hiddenProviders = (): ReadonlySet<string> => hiddenProvidersOf(scope.getSnapshot().value)
   const directoryFor = directories.directoryFor.bind(directories)
   directories.directoryFor = (sessionId) => filterModelDirectory(

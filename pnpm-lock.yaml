@@ -1,7 +1,7 @@
 lockfileVersion: '9.0'
 
 settings:
-  autoInstallPeers: true
+  autoInstallPeers: false
   excludeLinksFromLockfile: false
 
 importers:
@@ -41,7 +41,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.0
-        version: 4.1.0(jsdom@26.1.0)(vite@8.3.0(esbuild@0.25.12))
+        version: 4.1.0(esbuild@0.25.12)(jsdom@26.1.0)
 
 packages:
 
@@ -814,7 +814,6 @@ packages:
       '@vitest/ui': 4.1.0
       happy-dom: '*'
       jsdom: '*'
-      vite: ^6.0.0 || ^7.0.0 || ^8.0.0-0
     peerDependenciesMeta:
       '@edge-runtime/vm':
         optional: true
@@ -1465,7 +1464,7 @@ snapshots:
       esbuild: 0.25.12
       fsevents: 2.3.3
 
-  vitest@4.1.0(jsdom@26.1.0)(vite@8.3.0(esbuild@0.25.12)):
+  vitest@4.1.0(esbuild@0.25.12)(jsdom@26.1.0):
     dependencies:
       '@vitest/expect': 4.1.0
       '@vitest/mocker': 4.1.0(vite@8.3.0(esbuild@0.25.12))
@@ -1490,7 +1489,18 @@ snapshots:
     optionalDependencies:
       jsdom: 26.1.0
     transitivePeerDependencies:
+      - '@vitejs/devtools'
+      - esbuild
+      - jiti
+      - less
       - msw
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - terser
+      - tsx
+      - yaml
 
   w3c-xmlserializer@5.0.0:
     dependencies:

@@ -18,7 +18,7 @@ for (const face of ['host', 'client']) {
   options = { ...options, declaration: true, emitDeclarationOnly: true, noEmit: false, noEmitOnError: false,
     declarationMap: false, sourceMap: false, composite: false, incremental: false, rootDir: undefined,
     outDir: resolve(root, 'lib/types'), noUnusedLocals: false, noUnusedParameters: false }
-  const files = face === 'host' ? [resolve(source, 'index.ts'), resolve(source, 'invariant.ts')]
+  const files = face === 'host' ? [resolve(source, 'index.ts')]
     : [resolve(source, 'client/index.ts'), resolve(source, 'client/css-modules.d.ts')]
   const program = ts.createProgram(files, options)
   const isOwn = file => !relative(source, file).startsWith('..')

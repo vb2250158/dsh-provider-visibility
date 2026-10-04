@@ -3,7 +3,7 @@
 import * as React from 'react'
 import type { ReactNode } from 'react'
 import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
-import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
 import { Button } from '@deepseek-ai/dsh-client-ui-primitives'
 import { DEFAULT_HIDDEN_PROVIDERS } from '../provider-visibility-shared.ts'
 import type { ProviderVisibilitySettings } from '../provider-visibility.ts'
@@ -21,7 +21,7 @@ export interface ProviderVisibilitySectionInjected {
     snapshot: ProviderVisibilityStore['store']
   }
   /** Durable visibility settings for this settings page. */
-  settings: SettingsScope<ProviderVisibilitySettings>
+  settings: ConfigForm<ProviderVisibilitySettings>
   setProviderVisible: (provider: string, visible: boolean) => Promise<void>
   saveRedirects: (rules: RedirectRule[]) => Promise<void>
   t: (key: ProviderVisibilityKey) => string

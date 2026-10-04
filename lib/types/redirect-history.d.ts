@@ -1,3 +1,12 @@
+declare module '@deepseek-ai/dsh-llm' {
+    interface MessageSourceMap {
+        'plugin:dsh-provider-visibility': {
+            readonly kind: 'plugin:dsh-provider-visibility';
+            readonly form: 'notice';
+            readonly summary: string;
+        };
+    }
+}
 /** 从已记录的路由通知与实际回复来源重建重定向尾注。 */
 import { z } from 'zod';
 import type { SessionEvent } from '@deepseek-ai/dsh-session';

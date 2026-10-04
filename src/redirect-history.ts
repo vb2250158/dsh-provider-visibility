@@ -1,3 +1,9 @@
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    'plugin:dsh-provider-visibility': { readonly kind: 'plugin:dsh-provider-visibility'; readonly form: 'notice'; readonly summary: string }
+  }
+}
+
 /** 从已记录的路由通知与实际回复来源重建重定向尾注。 */
 import { z } from 'zod'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
@@ -24,8 +30,7 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
 /** 只给来源与路由通知一致的实际模型回复添加尾注，失败请求不产生回复记录。 */
 export function foldRedirectHistory(state: RedirectHistoryState, event: SessionEvent): RedirectHistoryState {
   if (event.type === 'step/start') return { ...state, current: null }
-  if (event.type === 'user/message' && event.data.source.kind === 'plugin'
-    && event.data.source.plugin === REDIRECT_PRODUCER) {
+  if (event.type === 'user/message' && event.data.source.kind === `plugin:${REDIRECT_PRODUCER}`) {
     const block = event.data.content[0]
     if (block?.type !== 'text') return state
     let value: unknown

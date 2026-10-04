@@ -1,7 +1,7 @@
 /** Settings page that controls provider visibility in model selectors. */
 import type { ReactNode } from 'react';
 import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots';
-import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client';
+import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { ProviderVisibilitySettings } from '../provider-visibility.ts';
 import type { ProviderVisibilityStore } from './store.ts';
 import type { ProviderVisibilityKey } from './locales.ts';
@@ -14,7 +14,7 @@ export interface ProviderVisibilitySectionInjected {
         snapshot: ProviderVisibilityStore['store'];
     };
     /** Durable visibility settings for this settings page. */
-    settings: SettingsScope<ProviderVisibilitySettings>;
+    settings: ConfigForm<ProviderVisibilitySettings>;
     setProviderVisible: (provider: string, visible: boolean) => Promise<void>;
     saveRedirects: (rules: RedirectRule[]) => Promise<void>;
     t: (key: ProviderVisibilityKey) => string;

@@ -48,7 +48,7 @@ export function installRedirects(ctx: Context, getRules: () => readonly Redirect
     }
     agent.session.append('user/message', createUserMessage({
       content: [{ type: 'text', text: JSON.stringify(record) }],
-      source: { kind: 'plugin', plugin: REDIRECT_PRODUCER, form: 'notice',
+      source: { kind: `plugin:${REDIRECT_PRODUCER}`, form: 'notice',
         summary: boundContextSummary(`模型重定向：${record.from.provider}/${record.from.model} → ${record.to.provider}/${record.to.model}`) },
     }), { surfaceOp: 'append' })
     return config

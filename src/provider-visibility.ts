@@ -1,5 +1,6 @@
 /** Durable provider-display settings shared by the Host and browser halves. */
 
+import type { Volatile } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { validateRedirectRules, type RedirectRule } from './redirect-rules.ts'
 import { DEFAULT_HIDDEN_PROVIDERS, PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from './provider-visibility-shared.ts'
@@ -15,10 +16,7 @@ export interface ProviderVisibilitySettings {
 }
 
 /** Host plugin configuration, used as the composition layer for the setting. */
-export interface Config {
-  /** Provider route ids hidden until the user changes the setting. */
-  hiddenProviders?: string[]
-}
+export type Config = Volatile<ProviderVisibilitySettings>
 
 /** Durable settings schema and browser wire contract. */
 export const ProviderVisibilitySettingsSchema: z<ProviderVisibilitySettings> = z.object({
@@ -28,25 +26,11 @@ export const ProviderVisibilitySettingsSchema: z<ProviderVisibilitySettings> = z
     sourceModel: z.string(),
     targetProvider: z.string().required(),
     targetModel: z.string().required(),
-  })), values => {
-    const rules: RedirectRule[] = values.map(value => {
-      if (typeof value.sourceProvider !== 'string' || typeof value.targetProvider !== 'string' || typeof value.targetModel !== 'string') throw new Error('redirect.empty')
-      return {
-      sourceProvider: value.sourceProvider,
-      ...(value.sourceModel == null ? {} : { sourceModel: value.sourceModel }),
-      targetProvider: value.targetProvider,
-      targetModel: value.targetModel,
-      }
-    })
-    validateRedirectRules(rules)
-    return rules
-  }).default([]),
+  })) as z<RedirectRule[]>, validateRedirectRules, true).default([]),
 })
 
 /** Loader configuration schema. */
-export const Config: z<Config> = z.object({
-  hiddenProviders: z.array(z.string()).default([...DEFAULT_HIDDEN_PROVIDERS]),
-})
+export const Config = ProviderVisibilitySettingsSchema.volatile()
 
 /** Remove duplicate and empty ids before they become policy state. */
 export function normalizeHiddenProviders(providers: readonly string[]): string[] {

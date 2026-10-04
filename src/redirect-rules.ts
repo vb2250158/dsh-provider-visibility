@@ -13,7 +13,7 @@ export interface RedirectRule {
 }
 
 /** 校验规则集合；重复来源和自指规则在保存时拒绝。 */
-export function validateRedirectRules(rules: readonly RedirectRule[]): void {
+export function validateRedirectRules(rules: RedirectRule[]): RedirectRule[] {
   const sources = new Set<string>()
   for (const rule of rules) {
     if (![rule.sourceProvider, rule.targetProvider, rule.targetModel].every(value => value.trim().length > 0)
@@ -25,6 +25,7 @@ export function validateRedirectRules(rules: readonly RedirectRule[]): void {
       throw new Error('redirect.self')
     }
   }
+  return rules
 }
 
 /** 精确模型优先于提供商规则；每次请求只匹配一次，不递归重定向。 */

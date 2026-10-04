@@ -1,5 +1,7 @@
 # dsh-provider-visibility
 
+This release requires DSH 0.2.1-alpha.1 or a compatible 0.2 release. See [compatibility details](docs/dsh-0.2-compatibility.md).
+
 ## 0.1.0-rc.8.11
 
 修复模型列表勾选框和重定向选择器一直禁用：客户端使用明确的设置值解析器，不执行序列化后失去闭包的校验函数。保留主机写入校验、原有隐藏列表及规则；无需迁移设置数据。

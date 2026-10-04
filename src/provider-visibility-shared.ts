@@ -3,7 +3,7 @@ import { validateRedirectRules, type RedirectRule } from './redirect-rules.ts'
 import type { ProviderVisibilitySettings } from './provider-visibility.ts'
 
 /** Settings namespace owned by the provider-display plugin. */
-export const PROVIDER_VISIBILITY_SETTINGS_NAMESPACE = 'llm-provider-visibility'
+export const PROVIDER_VISIBILITY_SETTINGS_NAMESPACE = 'provider-visibility'
 
 /** Providers hidden only after the user chooses them. */
 export const DEFAULT_HIDDEN_PROVIDERS = [] as const

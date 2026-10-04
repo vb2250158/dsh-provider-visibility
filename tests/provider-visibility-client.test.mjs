@@ -37,7 +37,7 @@ async function loadClientBundle() {
 
 test('模型下拉设置浏览器模块只请求 DSH 浏览器平台依赖，并加载官方 Button 与自身样式表', async () => {
   const { client, styles } = await loadClientBundle()
-  assert.deepEqual(client.inject, ['slots', 'locale', 'modelDirectories', 'remote', 'remote.session', 'sessions', 'settingsScope'])
+  assert.deepEqual(client.inject, ['slots', 'locale', 'modelDirectories', 'remote', 'remote.session', 'sessions', 'configForms'])
   assert.doesNotMatch(await readFile(clientBundleFile, 'utf8'), /@deepseek-ai\/schemastery/)
   assert.equal(styles.length, 1)
   assert.match(styles[0].dataset.pluginCss, /ProviderVisibilitySection\.module\.css/)

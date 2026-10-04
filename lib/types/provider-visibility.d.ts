@@ -1,4 +1,5 @@
 /** Durable provider-display settings shared by the Host and browser halves. */
+import type { Volatile } from '@deepseek-ai/cordis';
 import z from '@deepseek-ai/schemastery';
 import { type RedirectRule } from './redirect-rules.ts';
 export { DEFAULT_HIDDEN_PROVIDERS, PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from './provider-visibility-shared.ts';
@@ -10,13 +11,10 @@ export interface ProviderVisibilitySettings {
     redirects: RedirectRule[];
 }
 /** Host plugin configuration, used as the composition layer for the setting. */
-export interface Config {
-    /** Provider route ids hidden until the user changes the setting. */
-    hiddenProviders?: string[];
-}
+export type Config = Volatile<ProviderVisibilitySettings>;
 /** Durable settings schema and browser wire contract. */
 export declare const ProviderVisibilitySettingsSchema: z<ProviderVisibilitySettings>;
 /** Loader configuration schema. */
-export declare const Config: z<Config>;
+export declare const Config: z<NoInfer<ProviderVisibilitySettings>, NoInfer<ProviderVisibilitySettings>, "volatile">;
 /** Remove duplicate and empty ids before they become policy state. */
 export declare function normalizeHiddenProviders(providers: readonly string[]): string[];

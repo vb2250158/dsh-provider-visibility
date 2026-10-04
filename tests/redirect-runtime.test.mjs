@@ -22,7 +22,7 @@ const rule = { sourceProvider: source.provider, sourceModel: source.model, targe
 test('运行中重定向记录绑定当前步骤，下一步清除旧通知', () => {
   const session = Session.create('running-redirect', [])
   session.append('step/start', { turn: 2, step: 1 })
-  session.append('user/message', createUserMessage({ content: [{ type: 'text', text: JSON.stringify({ version: 1, from: source, to: target }) }], source: { kind: 'plugin', plugin: 'dsh-provider-visibility', form: 'notice', summary: 'redirect' } }), { surfaceOp: 'append' })
+  session.append('user/message', createUserMessage({ content: [{ type: 'text', text: JSON.stringify({ version: 1, from: source, to: target }) }], source: { kind: 'plugin:dsh-provider-visibility', form: 'notice', summary: 'redirect' } }), { surfaceOp: 'append' })
   let state = runningRedirectProjection.init()
   for (const event of eventsOf(session)) state = runningRedirectProjection.apply(state, event)
   assert.deepEqual(state, { turn: 2, step: 1, record: { version: 1, from: source, to: target } })
@@ -134,7 +134,7 @@ test('历史尾注只标记实际返回的目标模型；改选择、重载与�
   assert.deepEqual(history.messages[message.id], { version: 1, from: source, to: target })
   assert.equal(history.messages[other.id], undefined)
   const snapshot = Object.values(history.messages).map(record => `${record.from.provider}/${record.from.model} → ${record.to.provider}/${record.to.model}`).join('\n') + '\n'
-  assert.equal(snapshot, await readFile(new URL('./fixtures/redirect-history.txt', import.meta.url), 'utf8'))
+  assert.equal(snapshot, (await readFile(new URL('./fixtures/redirect-history.txt', import.meta.url), 'utf8')).replaceAll('\r\n', '\n'))
 })
 
 test('真实 AgentLoop 按规则发送，实际请求头和回复来源一致', async () => {
