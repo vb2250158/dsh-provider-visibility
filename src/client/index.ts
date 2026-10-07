@@ -1,3 +1,4 @@
+import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 /** Browser half of the provider-display settings plugin. */
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
@@ -116,11 +117,9 @@ export function apply(ctx: ClientContext): void {
     return () => { for (const dispose of disposers) dispose() }
   }, 'ui-provider-visibility: provider directory invalidations')
 
-  ctx.slots.inject('settings.section', () => ctx.slots.register({
-    name: 'settings.section',
-    id: 'model-list',
-    order: 15,
-    label: () => t('nav'),
+  ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({
+    name: 'plugins.bundle.config',
+    key: 'dsh-provider-visibility',
     inject: injected,
     children: { 'settings.model-redirect.picker': { kind: 'single', scope: 'root' } },
   }, ProviderVisibilitySection))
