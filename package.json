@@ -1,7 +1,7 @@
 {
   "name": "dsh-provider-visibility",
   "description": "Provider visibility policy and Model list settings page",
-  "version": "0.1.0-rc.8.13",
+  "version": "0.1.0-rc.8.14",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -15,7 +15,9 @@
       "default": "./lib/client.js"
     },
     "./src/*": "./src/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
   },
   "dsh": {
     "client": {
@@ -69,7 +71,10 @@
     "cordis.patch.yml",
     "README.md",
     "LICENSE",
-    "docs"
+    "docs",
+    "locale",
+    "icon.svg",
+    "ICON_LICENSE.txt"
   ],
   "repository": {
     "type": "git",
@@ -93,5 +98,6 @@
     "react-dom": "18.3.1",
     "typescript": "5.9.3",
     "vitest": "4.1.0"
-  }
+  },
+  "icon": "./icon.svg"
 }

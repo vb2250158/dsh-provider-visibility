@@ -47,3 +47,7 @@ npm pack --dry-run
 MIT
 
 Local integration uses the current client-store and declares remote.session injection. The settings page reads the global model catalog, so a pending or absent session does not hide available providers.
+
+## Plugin display metadata
+
+The plugin list shows **Model visibility** in English and **模型列表** in Chinese, following the DSH interface language. `locale/en.json` and `locale/zh.json` provide the title and description; `icon.svg` supplies self-contained artwork. The package exports and publishes these resources. The icon is adapted from Lucide; see [ICON_LICENSE.txt](ICON_LICENSE.txt).

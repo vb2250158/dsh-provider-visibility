@@ -1,5 +1,10 @@
 # 0.1.0-rc.8.9
 
+## 0.1.0-rc.8.14 (2026-10-07)
+
+- 为插件列表提供中英文名称与说明，并发布独立的 SVG 图标。
+- Publish English and Chinese plugin display metadata and a dedicated SVG icon.
+
 ## 0.1.0-rc.8.13
 
 - Align maintenance lockfiles and peer versions with the DSH 0.2 runtime.
