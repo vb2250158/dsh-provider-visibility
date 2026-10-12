@@ -4,7 +4,7 @@ import * as React from 'react'
 import type { ReactNode } from 'react'
 import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
-import { Button } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, Switch } from '@deepseek-ai/dsh-client-ui-primitives'
 import { DEFAULT_HIDDEN_PROVIDERS } from '../provider-visibility-shared.ts'
 import type { ProviderVisibilitySettings } from '../provider-visibility.ts'
 import type { ProviderVisibilityStore } from './store.ts'
@@ -51,6 +51,8 @@ function Loaded({ injected }: { injected: ProviderVisibilitySectionFace }): Reac
     listener => injected.settings.subscribe(listener), () => injected.settings.getSnapshot(),
   )
   const [pending, setPending] = React.useState<string | undefined>(undefined)
+  const [feedback, setFeedback] = React.useState<string | null>(null)
+  const [saveError, setSaveError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (state.status === 'idle') void controller.load()
@@ -69,22 +71,27 @@ function Loaded({ injected }: { injected: ProviderVisibilitySectionFace }): Reac
 
   const hidden = new Set(settings.value?.hiddenProviders ?? DEFAULT_HIDDEN_PROVIDERS)
   const writable = settings.status === 'ready' && settings.writable
-  const settingsNotice = settings.status === 'unavailable'
+  const settingsNotice = settings.status === 'loading'
+    ? t('loading')
+    : settings.status === 'unavailable'
     ? t('unavailable')
     : settings.status === 'ready' && !settings.writable
       ? t('readOnly')
       : undefined
 
   return (
-    <div className={styles['section']}>
+    <div className={styles['section']} data-provider-visibility-settings>
       <h2 className={styles['title']}>{t('title')}</h2>
+      {settingsNotice === undefined ? null : <p role="status" className={styles['notice']}>{settingsNotice}</p>}
       <RedirectRules groups={state.groups} rules={settings.value?.redirects ?? []} writable={writable}
         save={injected.saveRedirects} renderSlot={injected.renderSlot} t={t} />
+      <section className={styles['panel']} aria-label={t('providerTitle')}>
+      <h3 className={styles['title']}>{t('providerTitle')}</h3>
       <p className={styles['intro']}>{t('intro')}</p>
       <p className={styles['hint']}>{t('hiddenHint')}</p>
-      {settingsNotice === undefined ? null : <p className={styles['notice']}>{settingsNotice}</p>}
+      {state.status === 'loading' || state.status === 'idle' ? <p role="status" className={styles['hint']}>{t('loadingProviders')}</p> : null}
       <ul className={styles['rows']}>
-        {state.providers.map((provider) => {
+        {(settings.value === undefined ? [] : state.providers).map((provider) => {
           const visible = !hidden.has(provider.provider)
           return (
             <li key={provider.provider} className={styles['row']}>
@@ -92,18 +99,21 @@ function Loaded({ injected }: { injected: ProviderVisibilitySectionFace }): Reac
                 <span className={styles['name']}>{provider.displayName}</span>
                 <span className={styles['meta']}>{format(t('providerId'), provider.provider)}</span>
               </span>
-              <span className={styles['state']}>{t('active')}</span>
               <label className={styles['action']}>
-                <span>{visible ? t('show') : t('hide')}</span>
-                <input
-                  type="checkbox"
-                  className={styles['toggle']}
+                <span>{pending === provider.provider ? t('saving') : visible ? t('show') : t('hide')}</span>
+                <Switch
                   checked={visible}
                   disabled={!writable || pending !== undefined}
-                  aria-label={format(visible ? t('hideProvider') : t('showProvider'), provider.displayName)}
+                  label={format(visible ? t('hideProvider') : t('showProvider'), provider.displayName)}
+                  title={settingsNotice}
                   onChange={() => {
                     setPending(provider.provider)
-                    void setProviderVisible(provider.provider, !visible).finally(() => { setPending(undefined) })
+                    setFeedback(null)
+                    setSaveError(null)
+                    void setProviderVisible(provider.provider, !visible)
+                      .then(() => { setFeedback(t('saved')) })
+                      .catch((error: unknown) => { setSaveError(error instanceof Error ? error.message : t('saveFailed')) })
+                      .finally(() => { setPending(undefined) })
                   }}
                 />
               </label>
@@ -111,7 +121,10 @@ function Loaded({ injected }: { injected: ProviderVisibilitySectionFace }): Reac
           )
         })}
       </ul>
+      {feedback === null ? null : <p role="status" className={styles['feedback']}>{feedback}</p>}
+      {saveError === null ? null : <p role="alert" className={styles['error']}>{saveError}</p>}
       {state.status === 'ready' && state.providers.length === 0 ? <p className={styles['hint']}>{t('empty')}</p> : null}
+      </section>
     </div>
   )
 }

@@ -19,18 +19,42 @@ it('已解析的可写设置启用提供商勾选和模型下拉，保存回读�
     useSnapshot={select => select({ status: 'ready', providers: [{ provider: 'api', displayName: 'API' }], groups, error: null })}
     settings={{ getSnapshot: () => snapshot, subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener) } } as never}
     setProviderVisible={setProviderVisible} saveRedirects={async () => {}} renderSlot={picker as never} t={key => zh[key]} />)
-  const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+  const checkbox = screen.getByRole('switch', { name: '显示 API' }) as HTMLButtonElement
   expect(checkbox.disabled).toBe(false)
-  expect(checkbox.checked).toBe(false)
+  expect(checkbox.getAttribute('aria-checked')).toBe('false')
   expect((screen.getAllByText('pick')[0] as HTMLButtonElement).disabled).toBe(false)
   fireEvent.click(checkbox)
-  await waitFor(() => { expect(checkbox.checked).toBe(true); expect(checkbox.disabled).toBe(false) })
+  await waitFor(() => { expect(checkbox.getAttribute('aria-checked')).toBe('true'); expect(checkbox.disabled).toBe(false) })
   fireEvent.click(checkbox)
-  await waitFor(() => { expect(checkbox.checked).toBe(false); expect(checkbox.disabled).toBe(false) })
+  await waitFor(() => { expect(checkbox.getAttribute('aria-checked')).toBe('false'); expect(checkbox.disabled).toBe(false) })
   expect(setProviderVisible.mock.calls).toEqual([['api', true], ['api', false]])
 })
 const groups = [{ id: 'subscription', name: 'Subscription', models: [{ id: 'a', name: 'Model A' }] }, { id: 'api', name: 'API', models: [{ id: 'b', name: 'Model B' }] }]
 const picker = (_name, props) => <button disabled={props.locked} onClick={() => props.select(props.current === null ? { provider: 'subscription', model: 'a' } : { provider: 'api', model: 'b' })}>{props.current?.model ?? 'pick'}</button>
+
+it('设置加载时说明禁用原因，不把未读取的隐藏列表显示为全部开启', () => {
+  const snapshot = { status: 'loading', writable: false, value: undefined }
+  render(<ProviderVisibilitySection controller={{ load: async () => {} } as never}
+    useSnapshot={select => select({ status: 'ready', providers: [{ provider: 'api', displayName: 'API' }], groups, error: null })}
+    settings={{ getSnapshot: () => snapshot, subscribe: () => () => {} } as never}
+    setProviderVisible={async () => {}} saveRedirects={async () => {}} renderSlot={picker as never} t={key => zh[key]} />)
+  expect(screen.getByRole('status').textContent).toBe(zh.loading)
+  expect(screen.queryByRole('switch', { name: '隐藏 API' })).toBeNull()
+  expect((screen.getAllByText('pick')[0] as HTMLButtonElement).disabled).toBe(true)
+})
+
+it('提供商保存失败显示错误，解除忙碌状态并保留原值', async () => {
+  const snapshot = { status: 'ready', writable: true, value: { hiddenProviders: [], redirects: [] } }
+  render(<ProviderVisibilitySection controller={{ load: async () => {} } as never}
+    useSnapshot={select => select({ status: 'ready', providers: [{ provider: 'api', displayName: 'API' }], groups, error: null })}
+    settings={{ getSnapshot: () => snapshot, subscribe: () => () => {} } as never}
+    setProviderVisible={async () => { throw new Error(zh.saveFailed) }} saveRedirects={async () => {}} renderSlot={picker as never} t={key => zh[key]} />)
+  const toggle = screen.getByRole('switch', { name: '隐藏 API' }) as HTMLButtonElement
+  fireEvent.click(toggle)
+  await waitFor(() => { expect(screen.getByRole('alert').textContent).toBe(zh.saveFailed); expect(toggle.disabled).toBe(false) })
+  expect(toggle.getAttribute('aria-checked')).toBe('true')
+  expect(screen.queryByText(zh.saved)).toBeNull()
+})
 
 it('添加提供商规则后回读显示，移除恢复空列表', async () => {
   const saved = vi.fn()

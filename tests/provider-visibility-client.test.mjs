@@ -47,7 +47,7 @@ test('模型下拉设置浏览器模块只请求 DSH 浏览器平台依赖，并
   assert.doesNotMatch(bundle, /useSettingsSnapshot/)
   assert.match(bundle, /var React = __toESM\(require\("react"\), 1\)/)
   assert.match(bundle, /hooks: \{ snapshot: controller\.store \},\r?\n\s*settings: scope/)
-  assert.match(bundle, /directories\.directoryFor = \(sessionId\) => filterModelDirectory/)
+  assert.match(bundle, /directories\.directoryFor = filteredDirectoryFor/)
   assert.match(bundle, /await ctx\.remote\.session\.modelCatalog\(\)/)
   assert.match(bundle, /groups: directory\.groups\.filter/)
   assert.match(bundle, /const models = await this\.loadCatalog\(\)/)

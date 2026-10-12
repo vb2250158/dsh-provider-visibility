@@ -3,11 +3,34 @@
   flex-direction: column;
   gap: 12px;
   max-width: 720px;
+  width: 100%;
+  min-width: 0;
   color: var(--dsw-alias-label-primary);
 }
 
-.redirectForm { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.redirectForm p { margin: 0 0 8px; font-size: 12px; line-height: 18px; }
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 12px;
+  background: var(--dsw-alias-bg-module-platform);
+}
+.redirectForm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.redirectForm > div { min-width: 0; }
+.redirectForm p { margin: 0 0 8px; font-size: 14px; line-height: 22px; }
+.formFooter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.formFooter > button { min-height: 44px; }
+.scopeOption { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; line-height: 20px; min-height: 44px; }
+.scopeOption > button { flex: none; }
+.feedback { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-secondary); }
+@media (max-width: 540px) {
+  .panel { padding: 16px; }
+  .redirectForm { grid-template-columns: minmax(0, 1fr); }
+  .formFooter > button { width: 100%; }
+}
 
 .title {
   margin: 0;
@@ -22,9 +45,9 @@
 .error,
 .meta {
   margin: 0;
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--dsw-alias-label-tertiary);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
 }
 
 .intro {
@@ -60,7 +83,7 @@
   gap: 12px;
   min-height: 56px;
   padding: 10px 14px;
-  border: 1px solid var(--dsw-alias-border-l2);
+  border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: 12px;
 }
 
@@ -69,6 +92,7 @@
   flex-direction: column;
   min-width: 0;
   gap: 2px;
+  overflow-wrap: anywhere;
 }
 
 .name {
@@ -105,6 +129,8 @@
   font-size: 12px;
   line-height: 18px;
   white-space: nowrap;
+  min-height: 44px;
+  flex: none;
 }
 
 .toggle {

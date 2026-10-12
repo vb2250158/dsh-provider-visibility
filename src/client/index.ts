@@ -9,7 +9,8 @@ import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-model-selection/client'
-import { decodeProviderVisibility, PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from '../provider-visibility-shared.ts'
+import { PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from '../provider-visibility-shared.ts'
+import { createVisibilityForm } from './settings-form.ts'
 import type { ProviderVisibilitySettings } from '../provider-visibility.ts'
 import { ProviderVisibilitySection, type ProviderVisibilitySectionInjected } from './ProviderVisibilitySection.tsx'
 import { en, zh, type ProviderVisibilityKey } from './locales.ts'
@@ -74,12 +75,24 @@ export function apply(ctx: ClientContext): void {
   const directories = ctx.modelDirectories as ModelDirectoryResolver
   const patched = new WeakSet<ModelDirectory>()
   const unfilteredDirectories = new WeakMap<ModelDirectory, SessionModels>()
-  const scope = ctx.configForms.get<ProviderVisibilitySettings>(PROVIDER_VISIBILITY_SETTINGS_NAMESPACE)
+  const projection = createVisibilityForm(
+    ctx.configForms.get<ProviderVisibilitySettings>(PROVIDER_VISIBILITY_SETTINGS_NAMESPACE),
+    ctx.configForms.describe(),
+  )
+  ctx.effect(() => projection.dispose, 'ui-provider-visibility: decoded configuration values')
+  const scope = projection.form
   const hiddenProviders = (): ReadonlySet<string> => hiddenProvidersOf(scope.getSnapshot().value)
-  const directoryFor = directories.directoryFor.bind(directories)
-  directories.directoryFor = (sessionId) => filterModelDirectory(
+  const originalDirectoryFor = directories.directoryFor
+  const directoryFor = originalDirectoryFor.bind(directories)
+  const filteredDirectoryFor: ModelDirectoryResolver['directoryFor'] = (sessionId) => filterModelDirectory(
     directoryFor(sessionId), hiddenProviders, patched, unfilteredDirectories,
   )
+  ctx.effect(() => {
+    directories.directoryFor = filteredDirectoryFor
+    return () => {
+      if (directories.directoryFor === filteredDirectoryFor) directories.directoryFor = originalDirectoryFor
+    }
+  }, 'ui-provider-visibility: provider directory policy')
   const controller = new ProviderVisibilityStore(async () => {
     const response = await ctx.remote.session.modelCatalog()
     if (!response.ok) throw new Error(response.error.message)
@@ -87,11 +100,11 @@ export function apply(ctx: ClientContext): void {
   })
   const setProviderVisible = async (provider: string, visible: boolean): Promise<void> => {
     const current = scope.getSnapshot().value
-    if (current === undefined) return
+    if (current === undefined) throw new Error(t('unavailable'))
     const hidden = hiddenProvidersOf(current)
     if (visible) hidden.delete(provider)
     else hidden.add(provider)
-    await scope.set('hiddenProviders', [...hidden].sort())
+    if (!await scope.set('hiddenProviders', [...hidden].sort())) throw new Error(t('saveFailed'))
   }
   const t = ctx.locale.bind(NS) as ProviderVisibilitySectionInjected['t']
   const injected = (): ProviderVisibilitySectionInjected => ({
@@ -99,7 +112,9 @@ export function apply(ctx: ClientContext): void {
     hooks: { snapshot: controller.store },
     settings: scope,
     setProviderVisible,
-    saveRedirects: async rules => { await scope.set('redirects', rules) },
+    saveRedirects: async rules => {
+      if (!await scope.set('redirects', rules)) throw new Error(t('saveFailed'))
+    },
     t,
   })
 

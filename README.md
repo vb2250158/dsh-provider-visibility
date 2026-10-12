@@ -2,6 +2,12 @@
 
 This release requires DSH 0.2.1-alpha.1 or a compatible 0.2 release. See [compatibility details](docs/dsh-0.2-compatibility.md).
 
+## 0.1.0-rc.8.17
+
+修复当前 DSH 配置接口下模型重定向与提供商开关一直禁用的问题。浏览器从共享配置镜像解析插件字段，保存仍走宿主的校验、版本检查和写入队列；原隐藏列表及规则保持不变。加载、保存成功和失败均显示反馈；规则与提供商分区呈现，窄屏改为单列。
+
+Fix disabled model redirects and provider switches with the current DSH configuration API. The browser decodes plugin values from the shared mirror; Host validation, revision checks and the shared write queue remain in effect. Existing settings are preserved. Loading and save results are visible, with separate routing and provider sections and a single-column narrow layout.
+
 ## 0.1.0-rc.8.11
 
 修复模型列表勾选框和重定向选择器一直禁用：客户端使用明确的设置值解析器，不执行序列化后失去闭包的校验函数。保留主机写入校验、原有隐藏列表及规则；无需迁移设置数据。

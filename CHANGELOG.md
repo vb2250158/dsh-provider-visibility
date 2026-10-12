@@ -1,5 +1,12 @@
 # 0.1.0-rc.8.9
 
+## 0.1.0-rc.8.17 (2026-10-12)
+
+- 修复共享配置表单因传输 schema 缺少转换回调而持续加载；使用插件字段解析，保留宿主校验和写入队列。
+- 提供商显示改用主题开关；分区布局、窄屏适配、加载原因和保存反馈。保存拒绝保留草稿及原值。
+- Decode plugin fields from the shared configuration mirror when wire schemas cannot execute Host transforms; preserve Host validation and queued writes.
+- Use themed switches, separate routing and visibility panels, responsive layout and explicit load/save feedback. Rejected writes preserve draft and stored values.
+
 ## 0.1.0-rc.8.16 (2026-10-07)
 
 - 缩小图标绘制内容约三分之一，增加方框内的留白。

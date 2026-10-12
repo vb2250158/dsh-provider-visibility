@@ -38,19 +38,22 @@ export function RedirectRules({ groups, rules, writable, save, t, renderSlot }: 
   const [allModels, setAllModels] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [feedback, setFeedback] = React.useState<string | null>(null)
+  const hintId = React.useId()
   const persist = async (next: RedirectRule[], clear: boolean) => {
-    setBusy(true); setError(null)
+    setBusy(true); setError(null); setFeedback(null)
     try {
       validateRedirectRules(next)
       await save(next)
       if (clear) { setFrom(null); setTo(null); setAllModels(false) }
+      setFeedback(t(clear ? 'redirect.saved' : 'redirect.removed'))
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       setError(message === 'redirect.duplicate' || message === 'redirect.self' || message === 'redirect.empty' ? t(message) : message)
     } finally { setBusy(false) }
   }
-  return <section className={styles.section} aria-label={t('redirect.title')}>
-    <h2 className={styles.title}>{t('redirect.title')}</h2>
+  return <section className={styles.panel} aria-label={t('redirect.title')} aria-busy={busy}>
+    <h3 className={styles.title}>{t('redirect.title')}</h3>
     <p className={styles.hint}>{t('redirect.hint')}</p>
     <ul className={styles.rows}>{rules.map((rule, index) => <li className={styles.row} key={JSON.stringify([rule.sourceProvider, rule.sourceModel])}>
       <span className={styles.identity}>
@@ -64,11 +67,15 @@ export function RedirectRules({ groups, rules, writable, save, t, renderSlot }: 
       <div><p>{t('redirect.from')}</p>{renderSlot('settings.model-redirect.picker', { groups, current: from, locked: !writable || busy, select: setFrom })}</div>
       <div><p>{t('redirect.to')}</p>{renderSlot('settings.model-redirect.picker', { groups, current: to, locked: !writable || busy, select: setTo })}</div>
     </div>
-    <label className={styles.action}><Switch checked={allModels} disabled={!writable || busy} onChange={setAllModels} label={t('redirect.all')} />{t('redirect.all')}</label>
-    <Button variant="outline" size="sm" disabled={!writable || busy || from === null || to === null} onClick={() => {
+    <div className={styles.formFooter}>
+    <label className={styles.scopeOption}><Switch checked={allModels} disabled={!writable || busy} onChange={setAllModels} label={t('redirect.all')} /><span>{t('redirect.all')}</span></label>
+    <Button variant="primary" size="md" aria-describedby={hintId} disabled={!writable || busy || from === null || to === null} onClick={() => {
       if (from === null || to === null) return
       void persist([...rules, { sourceProvider: from.provider, ...(allModels ? {} : { sourceModel: from.model }), targetProvider: to.provider, targetModel: to.model }], true)
-    }}>{t('redirect.add')}</Button>
+    }}>{t(busy ? 'saving' : 'redirect.add')}</Button>
+    </div>
+    <p id={hintId} className={styles.hint}>{t(from === null || to === null ? 'redirect.chooseHint' : allModels ? 'redirect.scopeHint' : 'redirect.exactHint')}</p>
+    {feedback !== null && <p role="status" className={styles.feedback}>{feedback}</p>}
     {error !== null && <p role="alert" className={styles.error}>{error}</p>}
   </section>
 }

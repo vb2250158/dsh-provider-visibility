@@ -1,5 +1,16 @@
 /** Copy for the provider-display settings page. */
 export declare const en: {
+    readonly loading: "Loading settings…";
+    readonly loadingProviders: "Loading providers…";
+    readonly saving: "Saving…";
+    readonly saved: "Saved. Changes apply immediately.";
+    readonly saveFailed: "The change was not saved. Check the connection and try again.";
+    readonly providerTitle: "Provider visibility";
+    readonly 'redirect.scopeHint': "Applies to every model from the selected source provider.";
+    readonly 'redirect.exactHint': "Applies only to the selected source model.";
+    readonly 'redirect.chooseHint': "Choose a source and destination to add a rule.";
+    readonly 'redirect.saved': "Rule added. Applies to subsequent requests.";
+    readonly 'redirect.removed': "Rule removed. Subsequent requests use the original route.";
     readonly 'redirect.title': "Model redirects";
     readonly 'redirect.hint': "Exact model rules take priority. Each request redirects once and keeps the selected model. Removing a rule restores the original route. Replies retain the actual route.";
     readonly 'redirect.all': "All models from this provider";
@@ -13,7 +24,7 @@ export declare const en: {
     readonly 'redirect.empty': "Choose both the source and destination.";
     readonly 'redirect.badge': "Redirected";
     readonly nav: "Model list";
-    readonly title: "Model list";
+    readonly title: "Model routing and visibility";
     readonly intro: "Choose which providers appear in the model selector.";
     readonly hiddenHint: "Hidden providers remain available to existing routes and direct model requests.";
     readonly show: "Show";
@@ -24,7 +35,7 @@ export declare const en: {
     readonly inactive: "Not configured";
     readonly providerId: "Provider ID: {provider}";
     readonly readOnly: "Provider display settings are read-only in this deployment.";
-    readonly unavailable: "Provider display settings are unavailable.";
+    readonly unavailable: "Settings could not be loaded. Reopen this page after checking the connection.";
     readonly loadFailed: "Loading the provider list failed";
     readonly retry: "Retry";
     readonly empty: "No providers are registered.";
