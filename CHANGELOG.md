@@ -1,5 +1,12 @@
 # 0.1.0-rc.8.9
 
+## 0.1.0-rc.8.18 (2026-10-21)
+
+- 修复模型设置页依赖已移除的表单 `mode` 字段而无法编辑或显示配置；权限跟随共享 Host 镜像，保留宿主写入队列和版本栅栏。
+- 更新真实配置表单回归夹具，覆盖只读、缺失命名空间、无效值、读取失败及恢复。
+- Fix model settings remaining read-only or losing values after removal of the form `mode` field; use the shared Host mirror permissions and retain queued, revision-fenced writes.
+- Update real configuration form regression fixtures and cover read-only state, missing namespaces, invalid values, read failures and recovery.
+
 ## 0.1.0-rc.8.17 (2026-10-12)
 
 - 修复共享配置表单因传输 schema 缺少转换回调而持续加载；使用插件字段解析，保留宿主校验和写入队列。

@@ -12,16 +12,14 @@ import type { ProviderVisibilitySettings } from '../provider-visibility.ts'
 export function createVisibilityForm(source: ConfigForm<ProviderVisibilitySettings>, mirror: SettingsDescribeFace) {
   const store = createSnapshotStore<ConfigFormSnapshot<ProviderVisibilitySettings>>(source.getSnapshot())
   const derive = (): void => {
-    const current = source.getSnapshot()
     const mirrored = mirror.getSnapshot()
     const view = mirrored.view?.namespaces.find(entry => entry.ns === PROVIDER_VISIBILITY_SETTINGS_NAMESPACE)
     const value = view === undefined ? undefined : decodeProviderVisibility(view.value)
     store.update(snapshot => {
-      snapshot.mode = current.mode
-      snapshot.writable = current.mode === 'host' && mirrored.view?.writable === true
-      snapshot.status = current.mode === 'memory' || (mirrored.view === undefined && mirrored.error !== null) || (mirrored.view !== undefined && value === undefined)
+      snapshot.writable = mirrored.view?.writable === true
+      snapshot.status = (mirrored.view === undefined && mirrored.error != null) || (mirrored.view !== undefined && value === undefined)
         ? 'unavailable' : value === undefined ? 'loading' : 'ready'
-      snapshot.value = current.mode === 'host' ? value : undefined
+      snapshot.value = value
       snapshot.revision = view?.revision
       snapshot.base = view?.base
       snapshot.user = view?.user

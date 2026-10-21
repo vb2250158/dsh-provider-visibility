@@ -31,19 +31,58 @@ test('共享配置表单不能解析 Host transform 时，领域投影仍可编�
     writes.push({ ns, ops, revision })
     return { ok: true, value: { ...view, revision: revision + 1, value: { ...view.value, [ops[0].path[0]]: ops[0].value } } }
   } } } }
-  const source = new ConfigFormController(ctx, { namespace: view.ns }, mirror, 'host', {
+  const source = new ConfigFormController(ctx, { namespace: view.ns }, mirror, {
     rehydrate: wire => new Schema(wire),
     validate(schema, value) { try { schema(value) } catch (error) { return error.message } },
   })
   assert.equal(source.getSnapshot().status, 'loading')
+  assert.equal('mode' in source.getSnapshot(), false)
   const projection = createVisibilityForm(source, mirror)
   assert.equal(projection.form.getSnapshot().status, 'ready')
   assert.equal(projection.form.getSnapshot().writable, true)
-  await projection.form.set('hiddenProviders', [])
+  assert.deepEqual(projection.form.getSnapshot().value.hiddenProviders, ['hidden'])
+  assert.equal(await projection.form.set('hiddenProviders', []), true)
   assert.deepEqual(projection.form.getSnapshot().value.hiddenProviders, [])
-  await projection.form.set('hiddenProviders', ['hidden'])
+  assert.equal(await projection.form.set('hiddenProviders', ['hidden']), true)
   assert.deepEqual(writes.map(write => write.revision), [7, 8])
   assert.deepEqual(projection.form.getSnapshot().value.hiddenProviders, ['hidden'])
+  projection.dispose()
+  await source.dispose()
+  assert.equal(listeners.size, 0)
+})
+
+test('领域投影跟随 Host 权限、缺失命名空间、无效值和读取失败', async () => {
+  const view = { ns: 'provider-visibility', revision: 3, base: {}, user: {}, value: { hiddenProviders: [], redirects: [] } }
+  let snapshot = { error: null, view: undefined }
+  const listeners = new Set()
+  const mirror = {
+    getSnapshot: () => snapshot,
+    subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
+  }
+  const source = new ConfigFormController({}, { namespace: view.ns, decode: decodeProviderVisibility }, mirror, {})
+  const projection = createVisibilityForm(source, mirror)
+  const publish = next => { snapshot = next; for (const listener of listeners) listener() }
+  assert.equal(projection.form.getSnapshot().status, 'loading')
+  assert.equal(projection.form.getSnapshot().writable, false)
+  publish({ error: null, view: { writable: false, namespaces: [view] } })
+  assert.equal(projection.form.getSnapshot().status, 'ready')
+  assert.equal(projection.form.getSnapshot().writable, false)
+  assert.deepEqual(projection.form.getSnapshot().value, view.value)
+  assert.equal(projection.form.getSnapshot().revision, 3)
+  assert.deepEqual(projection.form.getSnapshot().base, view.base)
+  assert.deepEqual(projection.form.getSnapshot().user, view.user)
+  publish({ error: null, view: { writable: true, namespaces: [view] } })
+  assert.equal(projection.form.getSnapshot().writable, true)
+  for (const namespaces of [[], [{ ...view, value: { hiddenProviders: [1] } }]]) {
+    publish({ error: null, view: { writable: false, namespaces } })
+    assert.equal(projection.form.getSnapshot().status, 'unavailable')
+    assert.equal(projection.form.getSnapshot().value, undefined)
+    assert.equal(projection.form.getSnapshot().writable, false)
+  }
+  publish({ error: 'offline', view: undefined })
+  assert.equal(projection.form.getSnapshot().status, 'unavailable')
+  publish({ error: null, view: { writable: true, namespaces: [view] } })
+  assert.equal(projection.form.getSnapshot().status, 'ready')
   projection.dispose()
   await source.dispose()
   assert.equal(listeners.size, 0)
@@ -57,7 +96,7 @@ test('真实设置 scope 解析传输值并支持取消和恢复勾选，不执�
     acceptView(next) { view = next; for (const fn of listeners) fn() } }
   const writes = []
   const ctx = { remote: { settings: { async mutate(ns, ops, revision) { writes.push({ ns, ops, revision }); return { ok: true, value: { ...view, revision: revision + 1, value: { ...view.value, [ops[0].path[0]]: ops[0].value } } } } } } }
-  const scope = new ConfigFormController(ctx, { namespace: view.ns, decode: decodeProviderVisibility }, mirror, 'host', { rehydrate() { throw new Error('default wire decoder must not run') } })
+  const scope = new ConfigFormController(ctx, { namespace: view.ns, decode: decodeProviderVisibility }, mirror, { rehydrate() { throw new Error('default wire decoder must not run') } })
   assert.equal(scope.getSnapshot().status, 'ready')
   assert.equal(scope.getSnapshot().writable, true)
   assert.deepEqual(scope.getSnapshot().value.hiddenProviders, ['hidden'])
