@@ -1,56 +1,51 @@
-/** 在模型请求准备前应用重定向，保留来源选择及请求级存档。 */
+/** 在步骤准备前解析有效模型，保留用户选择和请求级通知。 */
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import type {} from '@deepseek-ai/dsh-agent-loop'
 import { createUserMessage, boundContextSummary } from '@deepseek-ai/dsh-llm'
-import type {} from '@deepseek-ai/dsh-api-session-controller'
 import { redirectHistoryProjection, runningRedirectProjection, REDIRECT_PRODUCER, type RedirectRecord } from './redirect-history.ts'
 import { redirectRoute, sameRoute, validateRedirectRules, type RedirectRule } from './redirect-rules.ts'
 
-/** 规则与来源在提示词装配时固定；装配期间的设置变化留到下一步。 */
-export function installRedirects(ctx: Context, getRules: () => readonly RedirectRule[]): void {
-  ctx.effect(() => ctx.sessionProjections.register(redirectHistoryProjection))
-  ctx.effect(() => ctx.sessionProjections.register(runningRedirectProjection))
+/** 规则在工具和提示词装配前固定；用户的新选择留给下一步。 */
+export async function installRedirects(ctx: Context, getRules: () => readonly RedirectRule[]): Promise<void> {
+  if (ctx.agentLoop.modelResolutionVersion !== 1) throw new Error('Model redirects require a DSH driver with agent/resolve-model before step preparation')
+  await ctx.sessionProjections.register(redirectHistoryProjection)
+  await ctx.sessionProjections.register(runningRedirectProjection)
   const prepared = new WeakMap<Agent, RedirectRecord>()
-  ctx.on('system-prompt/assemble', async (_assembly, context, next) => {
-    const agent = context.agent
-    const pending = agent === undefined ? null : ctx.sessionProjections.stateOf(agent.session, 'modelSelection')?.pending
+  ctx.on('agent/resolve-model', async ({ agent, sourceSelection, signal }, next) => {
     const rules = [...getRules()]
     validateRedirectRules(rules)
-    const assembled = await next()
-    if (agent === undefined) return assembled
-    const provider = pending?.provider ?? assembled.variables.provider
-    const model = pending?.model ?? assembled.variables.model
-    if (typeof provider !== 'string' || typeof model !== 'string') {
-      prepared.delete(agent)
-      return assembled
-    }
-    const from = { provider, model }
+    const selected = await next()
+    signal.throwIfAborted()
+    const from = { provider: selected.provider, model: selected.model }
     const to = redirectRoute(from, rules)
+    if (sameRoute(from, to)) {
+      prepared.delete(agent)
+      return selected
+    }
+    const effective = { ...selected, ...to }
+    // 在工具条件与提示词读取目标之前拒绝无效目标，不回退到来源。
+    await ctx.llm.resolveCallConfig(effective, signal)
+    signal.throwIfAborted()
+    const current = agent.model.current()
+    // 请求头记录有效目标；未使用的来源选择保留给下一步和规则删除。
+    // 等待验证期间的新用户选择不能被旧步骤的来源覆盖。
+    if (sameRoute(current, sourceSelection) && current?.reasoningEffort === sourceSelection.reasoningEffort) {
+      agent.model.select(sourceSelection)
+    }
     prepared.set(agent, { version: 1, from, to })
-    return { ...assembled, variables: { ...assembled.variables, provider: to.provider, model: to.model } }
+    return effective
   }, { prepend: true })
   ctx.on('agent/request', async ({ agent, signal }, next) => {
     const proposed = await next()
     signal.throwIfAborted()
     const record = prepared.get(agent)
     if (record === undefined) return proposed
-    const config = { ...proposed, ...record.to }
-    if (sameRoute(record.from, record.to)) return config
-    // 提前验证目标和档位，失败不会偷偷回退到来源提供商。
-    await ctx.llm.resolveCallConfig(config, signal)
-    signal.throwIfAborted()
-    const pending = ctx.sessionProjections.stateOf(agent.session, 'modelSelection')?.pending
-    if (pending == null) {
-      agent.session.append('model/selection', {
-        ...record.from,
-        ...(proposed.reasoningEffort === undefined ? {} : { reasoningEffort: proposed.reasoningEffort }),
-      })
-    }
     agent.session.append('user/message', createUserMessage({
       content: [{ type: 'text', text: JSON.stringify(record) }],
       source: { kind: `plugin:${REDIRECT_PRODUCER}`, form: 'notice',
         summary: boundContextSummary(`模型重定向：${record.from.provider}/${record.from.model} → ${record.to.provider}/${record.to.model}`) },
     }), { surfaceOp: 'append' })
-    return config
+    return proposed
   }, { prepend: true })
 }

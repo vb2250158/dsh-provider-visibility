@@ -1,5 +1,5 @@
-/** 在模型请求准备前应用重定向，保留来源选择及请求级存档。 */
+/** 在步骤准备前解析有效模型，保留用户选择和请求级通知。 */
 import type { Context } from '@deepseek-ai/cordis';
 import { type RedirectRule } from './redirect-rules.ts';
-/** 规则与来源在提示词装配时固定；装配期间的设置变化留到下一步。 */
-export declare function installRedirects(ctx: Context, getRules: () => readonly RedirectRule[]): void;
+/** 规则在工具和提示词装配前固定；用户的新选择留给下一步。 */
+export declare function installRedirects(ctx: Context, getRules: () => readonly RedirectRule[]): Promise<void>;

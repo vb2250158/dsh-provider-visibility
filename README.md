@@ -1,6 +1,12 @@
 # dsh-provider-visibility
 
-This release requires DSH 0.2.1-alpha.1 or a compatible 0.2 release. See [compatibility details](docs/dsh-0.2-compatibility.md).
+This release requires DSH 0.2.1-rc.3 or later with the public `agent/resolve-model` step-selection event. See [compatibility details](docs/dsh-0.2-compatibility.md).
+
+## 0.1.0-rc.8.19
+
+重定向在工具条件和提示词装配前通过 `agent/resolve-model` 固定本步骤的有效选择。用户的原模型与显式推理档位保留；删除规则后下一步恢复来源，装配期间的新选择不被旧步骤覆盖。请求、重试、工具条件、提示词和实际回复使用同一路由。目标不支持该档位时明确失败，不回退。缺少该公开入口的旧 DSH 会在加载时报错，应先同步维护的 DSH 源码补丁。
+
+Resolve redirects before tools and prompt assembly, preserving the user's source selection and explicit effort. Removing a rule restores the source on the next step; a newer choice made while validation waits remains pending. Tools, prompt, request headers, replies and retries share the captured effective selection. Invalid targets fail without fallback. Older DSH drivers without model-resolution capability version 1 fail at plugin load with an actionable compatibility error.
 
 ## 0.1.0-rc.8.17
 
@@ -20,7 +26,7 @@ Fix disabled model redirects and provider switches with the current DSH configur
 
 来源和目标选择复用 `dsh-codex-model-selector` 的搜索下拉，启用该插件后即可编辑规则。选择下拉仅修改规则草稿，不调用会话的模型切换接口。重定向保留推理档位；目标不可用或拒绝该档位时请求失败，不自动回退。
 
-重定向通过公开 `system-prompt/assemble` 和 `agent/request` 扩展点生效。原选择记录为 `model/selection`，重定向通知记录为插件来源的 `user/message`，实际调用继续由标准 `request/header` 和模型回复来源记录。通知也进入模型上下文，说明本次路由。`modelRedirects` 投影按回复 id 关联记录，`dsh-chat-enhancement` 显示实际模型和“已重定向”标记，悬停可看“来源 → 实际使用”；后续规则或下拉变化不改历史记录。没有通知的旧回复不推测重定向来源。
+重定向通过公开 `agent/resolve-model` 在步骤准备前生效，`agent/request` 只写通知，不改路由。原选择记录为 `model/selection`，重定向通知记录为插件来源的 `user/message`，实际调用继续由标准 `request/header` 和模型回复来源记录。通知也进入模型上下文，说明本次路由。`modelRedirects` 投影按回复 id 关联记录，`dsh-chat-enhancement` 显示实际模型和“已重定向”标记，悬停可看“来源 → 实际使用”；后续规则或下拉变化不改历史记录。没有通知的旧回复不推测重定向来源。
 
 ## 安装
 

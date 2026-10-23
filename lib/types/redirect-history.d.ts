@@ -65,14 +65,8 @@ declare const runningSchema: z.ZodNullable<z.ZodObject<{
 }, z.core.$strip>>;
 type RunningRedirect = z.infer<typeof runningSchema>;
 declare module '@deepseek-ai/dsh-session-projection/types' {
-    interface SessionProjectionStateMap {
-        modelRedirects: RedirectHistoryState;
-    }
     interface SessionProjectionMap {
         modelRedirects: RedirectHistoryState['messages'];
-    }
-    interface SessionProjectionStateMap {
-        runningModelRedirect: RunningRedirect;
     }
     interface SessionProjectionMap {
         runningModelRedirect: RunningRedirect;
