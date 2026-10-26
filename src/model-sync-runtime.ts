@@ -49,7 +49,12 @@ export function installModelSync(ctx: Context, config: () => ModelSyncPolicy | u
     write: (target, models, revision) => ctx.settings.mutate(target.settingsNs, [
       { op: 'set', path: ['providers', target.provider, 'models'], value: models },
     ], revision),
-    report(target, outcome, count) {
+    report(target, outcome, count, failure) {
+      const root = join(dirname(ctx.settings.documentPath), '.model-catalog-backups')
+      const key = createHash('sha256').update(JSON.stringify(target)).digest('hex').slice(0, 16)
+      void mkdir(root, { recursive: true }).then(() => writeFile(join(root, `${key}-status.json`),
+        JSON.stringify({ ...target, outcome, count, failure, checkedAt: new Date().toISOString() }) + '\n'))
+        .catch(() => { ctx.logger.warn('API model sync status could not be saved') })
       const message = `API model sync ${target.provider}: ${outcome}${count === undefined ? '' : ` (${count} models)`}`
       if (outcome === 'updated') ctx.logger.info(message)
       else ctx.logger.warn(message)

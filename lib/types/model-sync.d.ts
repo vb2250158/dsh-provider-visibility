@@ -5,13 +5,18 @@ export interface ModelSyncSnapshot {
     revision: number;
     profile: Record<string, unknown>;
 }
+/** Fixed diagnostic labels; no exception text or provider secrets. */
+export interface ModelSyncFailure {
+    phase: string;
+    reason: 'conflict' | 'validation' | 'inactive' | 'other';
+}
 /** Public service operations used by the synchronizer. Backups contain model rows only. */
 export interface ModelSyncPorts {
     read(target: ModelSyncTarget): ModelSyncSnapshot;
     discover(target: ModelSyncTarget, profile: Record<string, unknown>, signal: AbortSignal): Promise<readonly LlmDiscoveredModel[]>;
     backup(target: ModelSyncTarget, previous: unknown): Promise<void>;
     write(target: ModelSyncTarget, models: readonly object[], revision: number): Promise<void>;
-    report(target: ModelSyncTarget, outcome: 'updated' | 'empty' | 'changed' | 'failed', count?: number): void;
+    report(target: ModelSyncTarget, outcome: 'updated' | 'empty' | 'changed' | 'failed', count?: number, failure?: ModelSyncFailure): void;
 }
 /** Preserve configured metadata for surviving ids; new ids adopt only disclosed facts.
  * @param previous - Provider-owned configured rows.

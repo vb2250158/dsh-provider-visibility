@@ -6,13 +6,16 @@ import type { ModelSyncPolicy, ModelSyncTarget } from './model-sync-config.ts'
 /** One live provider setting captured before discovery. */
 export interface ModelSyncSnapshot { revision: number; profile: Record<string, unknown> }
 
+/** Fixed diagnostic labels; no exception text or provider secrets. */
+export interface ModelSyncFailure { phase: string; reason: 'conflict' | 'validation' | 'inactive' | 'other' }
+
 /** Public service operations used by the synchronizer. Backups contain model rows only. */
 export interface ModelSyncPorts {
   read(target: ModelSyncTarget): ModelSyncSnapshot
   discover(target: ModelSyncTarget, profile: Record<string, unknown>, signal: AbortSignal): Promise<readonly LlmDiscoveredModel[]>
   backup(target: ModelSyncTarget, previous: unknown): Promise<void>
   write(target: ModelSyncTarget, models: readonly object[], revision: number): Promise<void>
-  report(target: ModelSyncTarget, outcome: 'updated' | 'empty' | 'changed' | 'failed', count?: number): void
+  report(target: ModelSyncTarget, outcome: 'updated' | 'empty' | 'changed' | 'failed', count?: number, failure?: ModelSyncFailure): void
 }
 
 /** Preserve configured metadata for surviving ids; new ids adopt only disclosed facts.
@@ -78,26 +81,36 @@ export class ModelCatalogSync {
       const controller = new AbortController()
       this.controller = controller
       const timer = setTimeout(() => controller.abort(), config.timeoutMs)
+      let phase = 'read'
       try {
         const before = this.ports.read(target)
+        phase = 'fetch'
         const models = await this.ports.discover(target, before.profile, controller.signal)
         if (this.disposed || controller.signal.aborted) continue
         if (models.length === 0) { this.ports.report(target, 'empty'); continue }
+        phase = 'merge'
         const rows = syncModelRows(before.profile.models, models)
         if (isDeepStrictEqual(rows, before.profile.models)) continue
         const enabled = (): boolean => this.config()?.targets.some(item => item.settingsNs === target.settingsNs && item.provider === target.provider) === true
         const unchanged = (snapshot: ModelSyncSnapshot): boolean => isDeepStrictEqual(snapshot.profile, before.profile)
         if (!enabled() || !unchanged(this.ports.read(target))) { this.ports.report(target, 'changed'); continue }
+        phase = 'backup'
         await this.ports.backup(target, before.profile.models)
         if (this.disposed || controller.signal.aborted) continue
         const fresh = this.ports.read(target)
         if (!enabled() || !unchanged(fresh)) { this.ports.report(target, 'changed'); continue }
+        phase = 'write'
         await this.ports.write(target, rows, fresh.revision)
+        phase = 'verify'
         if (!isDeepStrictEqual(this.ports.read(target).profile.models, rows)) throw new Error('model catalog readback differs')
         this.ports.report(target, 'updated', rows.length)
       } catch (error) {
         // Diagnostics exclude provider URLs and credentials carried by network errors.
-        if (!this.disposed) this.ports.report(target, 'failed')
+        const message = error instanceof Error ? error.message : ''
+        const reason = /conflict|revision/i.test(message) ? 'conflict'
+          : /validation|schema|not volatile|llm-pi-ai/i.test(message) ? 'validation'
+            : /disposed|inactive|fiber|effect/i.test(message) ? 'inactive' : 'other'
+        if (!this.disposed) this.ports.report(target, 'failed', undefined, { phase, reason })
       } finally { clearTimeout(timer); this.controller = undefined }
     }
   }

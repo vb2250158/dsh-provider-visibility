@@ -1,5 +1,10 @@
 # 0.1.0-rc.8.9
 
+## 0.1.0-rc.8.21 (2026-10-26)
+
+- 保存不含凭据及异常正文的最近一次 API 模型同步结果和失败阶段，便于运行验收与故障定位。
+- Persist fixed API catalog outcome and failure-phase labels for operational diagnosis, without credentials or exception text.
+
 ## 0.1.0-rc.8.20 (2026-10-26)
 
 - 自定义 API 模型可按指定提供商自动刷新，保留手动参数；空响应与故障保留旧列表，配置冲突跳过，写前保存模型快照。

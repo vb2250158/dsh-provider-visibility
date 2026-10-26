@@ -40,6 +40,14 @@ test('schema leaves sync disabled by default and rejects unsafe timing', () => {
     { targets: [target], intervalMs: 300000, timeoutMs: 10000 })
 })
 
+test('write failures report a fixed phase without retaining exception text', async () => {
+  const h = harness(async () => [{ id: 'new' }])
+  h.ports.write = async () => { throw new Error('schema validation: synthetic-private-value') }
+  await h.sync.refresh()
+  assert.deepEqual(h.reports[0][3], { phase: 'write', reason: 'validation' })
+  assert.equal(JSON.stringify(h.reports).includes('synthetic-private-value'), false)
+})
+
 test('endpoint membership preserves manual parameters and adopts disclosed metadata', () => {
   const old = { id: 'old', name: 'My name', maxTokens: 99, input: ['text', 'image'], reasoningEfforts: ['high'] }
   assert.deepEqual(syncModelRows([old, { id: 'removed' }], [{ id: 'old', name: 'API name', maxTokens: 999 }, { id: 'new', contextWindow: 1000, inputModalities: ['text'] }]),
