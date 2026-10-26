@@ -2,6 +2,16 @@
 
 This release requires DSH 0.2.1-rc.3 or later with the public `agent/resolve-model` step-selection event. See [compatibility details](docs/dsh-0.2-compatibility.md).
 
+## API 模型自动同步 / Automatic API model catalogs
+
+在插件配置的 `modelSync.targets` 中指定 `{ settingsNs, provider }`，为有明确 `baseURL` 和 `api` 的自定义 API 提供商启用同步。默认目标为空，不自动改动其它提供商。启动或启用时读取一次，之后每 `intervalMs`（默认 300000 毫秒）刷新；单次查询上限为 `timeoutMs`（默认 10000 毫秒）。查询直连所配置的 OpenAI 兼容或 Anthropic 端点，复用凭据服务和原有请求头；即使路由名与内置提供商相同，也不用安装包目录替代。订阅提供商继续管理自己的目录。
+
+Opt in custom API routes with `{ settingsNs, provider }` entries in the plugin's `modelSync.targets`; each route must configure an explicit `baseURL` and `api`. No routes are selected by default. Discovery runs at startup, when enabled, and every `intervalMs` (300000 ms by default), with a `timeoutMs` request limit (10000 ms by default). It queries the configured OpenAI-compatible or Anthropic endpoint using the credential service and deployment headers, even when the route shares a built-in provider's name. Subscription providers retain their own catalogs.
+
+成功同步后，列表与 API 返回的模型 ID 对齐；已有模型的名称、上下文、输出、视觉和推理参数保持用户配置，新模型采用 API 提供的元数据。空列表或查询失败保留上次目录，下次自动重试；提供商逐个隔离。查询期间用户编辑过该提供商时跳过本次保存，写入使用最新设置版本；无变化不写盘。每次变更前在 profile 的 `.model-catalog-backups/` 保存原模型列表，文件只含目标身份和模型行；恢复时将对应 `models` 写回原提供商，`null` 表示原来未配置此字段。保存会触发官方配置事件，已打开的模型选择器同步更新。停止自动刷新时清空目标数组。
+
+A successful refresh adopts the endpoint's model ids. Existing rows retain their manual name, context, output, vision and reasoning settings; new rows adopt disclosed metadata. Empty replies and failures retain the last catalog and retry on the next interval. Routes fail independently. Concurrent provider edits skip the stale refresh, writes use the latest settings revision, and unchanged lists do not write. Before each change, `.model-catalog-backups/` beside the profile patch receives the prior model list and target identity only; restore its `models` to the same provider (`null` means the field was originally absent). Standard configuration events refresh open model selectors. Clear the target array to disable refreshing.
+
 ## 0.1.0-rc.8.19
 
 重定向在工具条件和提示词装配前通过 `agent/resolve-model` 固定本步骤的有效选择。用户的原模型与显式推理档位保留；删除规则后下一步恢复来源，装配期间的新选择不被旧步骤覆盖。请求、重试、工具条件、提示词和实际回复使用同一路由。目标不支持该档位时明确失败，不回退。缺少该公开入口的旧 DSH 会在加载时报错，应先同步维护的 DSH 源码补丁。

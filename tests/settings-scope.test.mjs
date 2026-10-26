@@ -90,7 +90,9 @@ test('领域投影跟随 Host 权限、缺失命名空间、无效值和读取�
 
 test('真实设置 scope 解析传输值并支持取消和恢复勾选，不执行失去闭包的 schema', async () => {
   let view = { ns: 'llm-provider-visibility', revision: 1, value: { hiddenProviders: ['hidden'], redirects: [] }, schema: JSON.parse(JSON.stringify(ProviderVisibilitySettingsSchema)) }
-  assert.deepEqual(new Schema(view.schema)(view.value), view.value)
+  assert.deepEqual(new Schema(view.schema)(view.value), {
+    ...view.value, modelSync: { targets: [], intervalMs: 300000, timeoutMs: 10000 },
+  })
   const listeners = new Set()
   const mirror = { getSnapshot: () => ({ view: { writable: true, namespaces: [view] } }), subscribe: fn => { listeners.add(fn); return () => listeners.delete(fn) },
     acceptView(next) { view = next; for (const fn of listeners) fn() } }

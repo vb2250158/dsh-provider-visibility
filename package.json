@@ -1,7 +1,7 @@
 {
   "name": "dsh-provider-visibility",
   "description": "Provider visibility policy and Model list settings page",
-  "version": "0.1.0-rc.8.19",
+  "version": "0.1.0-rc.8.20",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -41,28 +41,29 @@
   },
   "license": "MIT",
   "dependencies": {
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": ">=4.0.5-alpha.1 <5.0.0",
     "@deepseek-ai/dsh-agent": ">=0.2.1-rc.3 <0.3.0",
+    "@deepseek-ai/dsh-agent-loop": ">=0.2.1-rc.3 <0.3.0",
     "@deepseek-ai/dsh-api-remotes": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-api-session-controller": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-connection": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-locale": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-ui-model-selection": ">=0.2.1-alpha.1 <0.3.0",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-ui-primitives": ">=0.2.1-alpha.1 <0.3.0",
+    "@deepseek-ai/dsh-client-ui-renderer": ">=0.2.1-alpha.1 <0.3.0",
+    "@deepseek-ai/dsh-client-ui-session": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-ui-settings": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-ui-slots": ">=0.2.1-alpha.1 <0.3.0",
+    "@deepseek-ai/dsh-credentials": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-llm": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-session-projection": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-settings": ">=0.2.1-alpha.1 <0.3.0",
-    "react": "^18.2.0",
     "@deepseek-ai/schemastery": ">=3.18.5-alpha.1 <4.0.0",
-    "@deepseek-ai/dsh-client-ui-renderer": ">=0.2.1-alpha.1 <0.3.0",
-    "@deepseek-ai/dsh-client-ui-session": ">=0.2.1-alpha.1 <0.3.0",
-    "@deepseek-ai/dsh-client-ui-plugin-manager": ">=0.2.1-alpha.1 <0.3.0",
-    "@deepseek-ai/dsh-agent-loop": ">=0.2.1-rc.3 <0.3.0"
+    "react": "^18.2.0"
   },
   "files": [
     "lib/index.js",
@@ -94,6 +95,7 @@
   "devDependencies": {
     "@testing-library/dom": "10.4.1",
     "@testing-library/react": "16.3.0",
+    "@types/node": "^22.20.5",
     "@types/react": "18.3.31",
     "esbuild": "0.25.12",
     "jsdom": "26.1.0",

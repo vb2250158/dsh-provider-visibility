@@ -3,6 +3,7 @@
 import { Context, Service } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-settings'
 import { installRedirects } from './redirect-runtime.ts'
+import { installModelSync } from './model-sync-runtime.ts'
 import {
   Config,
   DEFAULT_HIDDEN_PROVIDERS,
@@ -58,6 +59,7 @@ export function apply(ctx: Context, config: Config): void {
   const service = new ProviderVisibilityService(ctx, config)
   ctx.inject(['settings'], (settingsCtx) => {
     settingsCtx.effect(() => settingsCtx.settings.configure({ auto: false }, ctx.fiber))
+    settingsCtx.inject(['llm', 'credentials'], runtimeCtx => { installModelSync(runtimeCtx, () => config.get().modelSync) })
     settingsCtx.inject(['llm', 'sessionProjections', 'agentLoop'], async runtimeCtx => {
       await installRedirects(runtimeCtx, () => config.get().redirects)
     })

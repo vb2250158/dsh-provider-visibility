@@ -2,6 +2,7 @@
 import type { Volatile } from '@deepseek-ai/cordis';
 import z from '@deepseek-ai/schemastery';
 import { type RedirectRule } from './redirect-rules.ts';
+import { type ModelSyncConfig } from './model-sync-config.ts';
 export { DEFAULT_HIDDEN_PROVIDERS, PROVIDER_VISIBILITY_SETTINGS_NAMESPACE } from './provider-visibility-shared.ts';
 /** User-editable provider-display settings. */
 export interface ProviderVisibilitySettings {
@@ -9,6 +10,8 @@ export interface ProviderVisibilitySettings {
     hiddenProviders: string[];
     /** 仅影响后续请求；原会话模型选择保持不变。 */
     redirects: RedirectRule[];
+    /** Explicit API routes synchronized in the background; omitted means disabled. */
+    modelSync?: ModelSyncConfig;
 }
 /** Host plugin configuration, used as the composition layer for the setting. */
 export type Config = Volatile<ProviderVisibilitySettings>;

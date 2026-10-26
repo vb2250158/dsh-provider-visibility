@@ -1,5 +1,12 @@
 # 0.1.0-rc.8.9
 
+## 0.1.0-rc.8.20 (2026-10-26)
+
+- 自定义 API 模型可按指定提供商自动刷新，保留手动参数；空响应与故障保留旧列表，配置冲突跳过，写前保存模型快照。
+- Add opt-in automatic API model catalogs, preserving manual metadata and backing up previous rows. Empty replies and failures retain the prior list; concurrent edits skip stale results.
+- 即使自定义路由叫 `openai`，仍读取其实际端点，不用安装包内置目录替代；复用凭据服务和原有请求头。
+- Query the configured endpoint even for a custom route named `openai`, retaining the credential service and deployment headers instead of substituting a built-in catalog.
+
 ## 0.1.0-rc.8.18 (2026-10-21)
 
 - 修复模型设置页依赖已移除的表单 `mode` 字段而无法编辑或显示配置；权限跟随共享 Host 镜像，保留宿主写入队列和版本栅栏。
