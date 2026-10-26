@@ -1,5 +1,10 @@
 # 0.1.0-rc.8.9
 
+## 0.1.0-rc.8.22 (2026-10-26)
+
+- 修复热加载插件跨 JavaScript 环境传递模型记录时，被设置服务拒绝为非普通对象的问题；包含真实设置写入回归。
+- Normalize model record prototypes when crossing hot-loaded plugin realms so the settings service can persist them; cover the real settings mutation parser.
+
 ## 0.1.0-rc.8.21 (2026-10-26)
 
 - 保存不含凭据及异常正文的最近一次 API 模型同步结果和失败阶段，便于运行验收与故障定位。

@@ -10,6 +10,7 @@ import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import { ModelCatalogSync } from './model-sync.ts'
 import type { ModelSyncPolicy } from './model-sync-config.ts'
 import { fetchApiModels } from './api-models.ts'
+import { settingsModelRows } from './settings-model-rows.ts'
 
 /** Install one scoped refresh loop; no config means no network or settings writes.
  * @param ctx - Child context with LLM discovery and settings services available.
@@ -47,7 +48,7 @@ export function installModelSync(ctx: Context, config: () => ModelSyncPolicy | u
       await writeFile(join(root, `${key}-${randomUUID()}.json`), JSON.stringify({ ...target, models: previous ?? null }, null, 2) + '\n', { flag: 'wx' })
     },
     write: (target, models, revision) => ctx.settings.mutate(target.settingsNs, [
-      { op: 'set', path: ['providers', target.provider, 'models'], value: models },
+      { op: 'set', path: ['providers', target.provider, 'models'], value: settingsModelRows(models) },
     ], revision),
     report(target, outcome, count, failure) {
       const root = join(dirname(ctx.settings.documentPath), '.model-catalog-backups')

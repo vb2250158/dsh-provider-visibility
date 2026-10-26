@@ -4,15 +4,17 @@ import { createServer } from 'node:http'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { runInNewContext } from 'node:vm'
 import { build } from 'esbuild'
 
 const root = process.env.DSH_SOURCE_ROOT
 assert.ok(root, 'DSH_SOURCE_ROOT is required')
 await mkdir('.tmp-tests', { recursive: true })
 const outfile = resolve('.tmp-tests/model-sync.mjs')
-await build({ stdin: { contents: `export * from './src/model-sync.ts'; export { ProviderVisibilitySettingsSchema } from './src/provider-visibility.ts'; export { fetchApiModels } from './src/api-models.ts';`, resolveDir: process.cwd(), loader: 'ts' },
-  outfile, bundle: true, platform: 'node', format: 'esm', target: 'es2022', tsconfig: resolve(root, 'tsconfig.base.json') })
-const { ModelCatalogSync, syncModelRows, ProviderVisibilitySettingsSchema, fetchApiModels } = await import(pathToFileURL(outfile))
+await build({ stdin: { contents: `export * from './src/model-sync.ts'; export { ProviderVisibilitySettingsSchema } from './src/provider-visibility.ts'; export { fetchApiModels } from './src/api-models.ts'; export { settingsModelRows } from './src/settings-model-rows.ts'; export { default as Settings } from '${root}/packages/settings/settings/src/index.ts'; export { default as z } from '@deepseek-ai/schemastery';`, resolveDir: process.cwd(), loader: 'ts' },
+  outfile, bundle: true, platform: 'node', format: 'esm', target: 'es2022', tsconfig: resolve(root, 'tsconfig.base.json'),
+  banner: { js: "import { createRequire as createSyncTestRequire } from 'node:module'; const require = createSyncTestRequire(import.meta.url);" } })
+const { ModelCatalogSync, syncModelRows, ProviderVisibilitySettingsSchema, fetchApiModels, settingsModelRows, Settings, z } = await import(pathToFileURL(outfile))
 const target = { settingsNs: 'llm-pi-ai', provider: 'openai' }
 const config = { targets: [target], intervalMs: 1000, timeoutMs: 500 }
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done }); return { promise, resolve } }
@@ -46,6 +48,21 @@ test('write failures report a fixed phase without retaining exception text', asy
   await h.sync.refresh()
   assert.deepEqual(h.reports[0][3], { phase: 'write', reason: 'validation' })
   assert.equal(JSON.stringify(h.reports).includes('synthetic-private-value'), false)
+})
+
+test('real settings mutation accepts model rows from a separate plugin realm', async () => {
+  const schema = z.object({ providers: z.dict(z.object({ models: z.array(z.object({ id: z.string(), compat: z.dict(z.boolean()) })) })).volatile() })
+  const entry = { options: { id: target.settingsNs }, fiber: { runtime: { Config: schema } } }
+  let saved = { providers: { openai: { models: [] } } }
+  const settings = Object.create(Settings.prototype)
+  settings.ownerContext = { configEditor: { entries: () => [entry], edit: async (_entry, change) => { saved = change(saved, {}) } } }
+  settings.describe = () => [{ ns: target.settingsNs, revision: 7 }]
+  const foreign = runInNewContext('[{ id: "new", compat: { supportsStore: false } }]')
+  const write = value => settings.mutate(target.settingsNs, [{ op: 'set', path: ['providers', 'openai', 'models'], value }], 7)
+  await assert.rejects(write(foreign), /non-plain object/)
+  await write(settingsModelRows(foreign))
+  assert.deepEqual(saved.providers.openai.models, [{ id: 'new', compat: { supportsStore: false } }])
+  assert.notEqual(saved.providers.openai.models, foreign)
 })
 
 test('endpoint membership preserves manual parameters and adopts disclosed metadata', () => {
