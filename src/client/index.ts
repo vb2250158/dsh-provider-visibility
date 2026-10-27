@@ -2,9 +2,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 /** Browser half of the provider-display settings plugin. */
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-import type { ModelDirectoryState as SessionModels } from '@deepseek-ai/dsh-client-ui-model-selection/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
-import type { ModelDirectory, ModelDirectoryResolver } from '@deepseek-ai/dsh-client-ui-model-selection/client'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -15,6 +13,7 @@ import type { ProviderVisibilitySettings } from '../provider-visibility.ts'
 import { ProviderVisibilitySection, type ProviderVisibilitySectionInjected } from './ProviderVisibilitySection.tsx'
 import { en, zh, type ProviderVisibilityKey } from './locales.ts'
 import { ProviderVisibilityStore } from './store.ts'
+import { installDirectoryVisibilityPolicy } from './directory-policy.ts'
 
 export type { ProviderVisibilitySectionInjected, ProviderVisibilitySectionProps } from './ProviderVisibilitySection.tsx'
 export type { ProviderVisibilityState } from './store.ts'
@@ -36,45 +35,9 @@ function hiddenProvidersOf(value: ProviderVisibilitySettings | undefined): Set<s
   return new Set(value?.hiddenProviders ?? [])
 }
 
-function filterDirectory(
-  directory: SessionModels,
-  hidden: ReadonlySet<string>,
-): SessionModels {
-  return {
-    ...directory,
-    groups: directory.groups.filter(group => !hidden.has(group.id)),
-    failures: directory.failures.filter(failure => !hidden.has(failure.id)),
-  }
-}
-
-function filterModelDirectory(
-  directory: ModelDirectory,
-  hiddenProviders: () => ReadonlySet<string>,
-  patched: WeakSet<ModelDirectory>,
-  unfilteredDirectories: WeakMap<ModelDirectory, SessionModels>,
-): ModelDirectory {
-  if (patched.has(directory)) return directory
-  patched.add(directory)
-  const load = directory.load.bind(directory)
-  directory.load = async () => {
-    const loaded = await load()
-    unfilteredDirectories.set(directory, loaded)
-    const filtered = filterDirectory(loaded, hiddenProviders())
-    directory.store.update((state) => {
-      state.groups = [...filtered.groups]
-      state.failures = [...filtered.failures]
-    })
-    return filtered
-  }
-  return directory
-}
-
 /** Register the Model list page and keep its provider directory current. */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-provider-visibility: copy dictionaries')
-  const directories = ctx.modelDirectories as ModelDirectoryResolver
-  const patched = new WeakSet<ModelDirectory>()
-  const unfilteredDirectories = new WeakMap<ModelDirectory, SessionModels>()
   const projection = createVisibilityForm(
     ctx.configForms.get<ProviderVisibilitySettings>(PROVIDER_VISIBILITY_SETTINGS_NAMESPACE),
     ctx.configForms.describe(),
@@ -82,17 +45,7 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => projection.dispose, 'ui-provider-visibility: decoded configuration values')
   const scope = projection.form
   const hiddenProviders = (): ReadonlySet<string> => hiddenProvidersOf(scope.getSnapshot().value)
-  const originalDirectoryFor = directories.directoryFor
-  const directoryFor = originalDirectoryFor.bind(directories)
-  const filteredDirectoryFor: ModelDirectoryResolver['directoryFor'] = (sessionId) => filterModelDirectory(
-    directoryFor(sessionId), hiddenProviders, patched, unfilteredDirectories,
-  )
-  ctx.effect(() => {
-    directories.directoryFor = filteredDirectoryFor
-    return () => {
-      if (directories.directoryFor === filteredDirectoryFor) directories.directoryFor = originalDirectoryFor
-    }
-  }, 'ui-provider-visibility: provider directory policy')
+  ctx.effect(() => installDirectoryVisibilityPolicy(ctx.modelDirectories, hiddenProviders), 'ui-provider-visibility: provider directory policy')
   const controller = new ProviderVisibilityStore(async () => {
     const response = await ctx.remote.session.modelCatalog()
     if (!response.ok) throw new Error(response.error.message)

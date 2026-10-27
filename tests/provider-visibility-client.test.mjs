@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
+import { symbols } from '@deepseek-ai/cordis'
 
 const clientBundleFile = new URL('../lib/client.js', import.meta.url)
 const clientBundleUrl = clientBundleFile.href
@@ -21,6 +22,7 @@ async function loadClientBundle() {
     assert.equal(loaded?.id, 'dsh-provider-visibility')
     const client = loaded.factory(id => {
       if (id === 'react') return {}
+      if (id === '@deepseek-ai/cordis') return { symbols }
       if (id === 'react/jsx-runtime') return { jsx: () => null, jsxs: () => null }
       if (id === '@deepseek-ai/dsh-client-ui-primitives') return { Button: 'DshButton' }
       if (id === '@deepseek-ai/dsh-client-store') return {}
@@ -47,8 +49,8 @@ test('模型下拉设置浏览器模块只请求 DSH 浏览器平台依赖，并
   assert.doesNotMatch(bundle, /useSettingsSnapshot/)
   assert.match(bundle, /var React = __toESM\(require\("react"\), 1\)/)
   assert.match(bundle, /hooks: \{ snapshot: controller\.store \},\r?\n\s*settings: scope/)
-  assert.match(bundle, /directories\.directoryFor = filteredDirectoryFor/)
+  assert.match(bundle, /target\.directoryFor = directoryFor/)
   assert.match(bundle, /await ctx\.remote\.session\.modelCatalog\(\)/)
-  assert.match(bundle, /groups: directory\.groups\.filter/)
+  assert.match(bundle, /groups: loaded\.groups\.filter/)
   assert.match(bundle, /const models = await this\.loadCatalog\(\)/)
 })

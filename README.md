@@ -2,6 +2,12 @@
 
 This release requires DSH 0.2.1-rc.3 or later with the public `agent/resolve-model` step-selection event. See [compatibility details](docs/dsh-0.2-compatibility.md).
 
+## 0.1.0-rc.8.23
+
+模型列表过滤保留调用者的 Cordis 上下文。插件停用或热重载时恢复目录方法与未过滤目录；已开始的加载完成后不再写入已停用策略。重复启停不会保留失效会话服务或叠加旧过滤器。
+
+Model filtering preserves the caller's Cordis context. Disabling or hot reloading restores directory methods and the complete catalog; an in-flight load cannot apply a disposed policy. Repeated enable/disable cycles retain neither inactive Session services nor old filters.
+
 ## API 模型自动同步 / Automatic API model catalogs
 
 在插件配置的 `modelSync.targets` 中指定 `{ settingsNs, provider }`，为有明确 `baseURL` 和 `api` 的自定义 API 提供商启用同步。默认目标为空，不自动改动其它提供商。启动或启用时读取一次，之后每 `intervalMs`（默认 300000 毫秒）刷新；单次查询上限为 `timeoutMs`（默认 10000 毫秒）。查询直连所配置的 OpenAI 兼容或 Anthropic 端点，复用凭据服务和原有请求头；即使路由名与内置提供商相同，也不用安装包目录替代。订阅提供商继续管理自己的目录。
